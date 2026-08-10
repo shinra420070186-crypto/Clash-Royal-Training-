@@ -74,6 +74,7 @@ body {
 
 .screen.active { display: flex; }
 
+/* Fixed Header Layout */
 .header {
   display: flex;
   justify-content: center;
@@ -92,7 +93,7 @@ body {
   color: var(--text-main);
   text-align: center;
   width: 100%;
-  padding: 0 90px;
+  padding: 0 100px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -117,15 +118,6 @@ body {
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-}
-
-.header .btn-back.right {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 12px;
-  padding: 4px 8px;
 }
 
 .stats-bar {
@@ -517,34 +509,40 @@ body {
   width: 100%;
 }
 
+/* NEW EMBOSSED CARD SLOT DESIGN */
 .card-slot {
   flex: 1 1 0;
   min-width: 0;
   max-width: 76px;
   height: 96px;
-  background: linear-gradient(180deg, #2C456E 0%, #192C4A 100%);
-  border: 1.5px solid #3E5C8C;
+  background: rgba(0, 0, 0, 0.15); /* Dark inset cavity */
+  border: 1px solid rgba(0, 0, 0, 0.3); /* Dark top/side ring */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* Bottom highlight lip */
+  border-right: 1px solid rgba(255, 255, 255, 0.03);
   border-radius: 8px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.4);
+  box-shadow: inset 0px 4px 8px rgba(0, 0, 0, 0.4), inset 0px 1px 3px rgba(0,0,0,0.3);
 }
 
+/* NEW ETCHED CROWN SVG */
 .card-slot::before {
   content: '';
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 38px;
-  height: 32px;
-  background-image: url("data:image/svg+xml,%3Csvg width='38' height='32' viewBox='0 0 38 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 24V9L12 14L19 5L26 14L32 9V24H6Z' fill='%239DB4D1' fill-opacity='0.15'/%3E%3Crect x='6' y='24' width='26' height='4' rx='1' fill='%239DB4D1' fill-opacity='0.15'/%3E%3Ccircle cx='6' cy='7' r='2.5' fill='%239DB4D1' fill-opacity='0.15'/%3E%3Ccircle cx='19' cy='3' r='2.5' fill='%239DB4D1' fill-opacity='0.15'/%3E%3Ccircle cx='32' cy='7' r='2.5' fill='%239DB4D1' fill-opacity='0.15'/%3E%3C/svg%3E");
+  width: 42px;
+  height: 42px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000000' fill-opacity='0.25' d='M2.5 15l1.5-7 4.5 3 3.5-6 3.5 6 4.5-3 1.5 7H2.5z'/%3E%3Cpath fill='%23000000' fill-opacity='0.25' d='M2.5 16.5h19v2.5H2.5z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
+  background-position: center;
   background-size: contain;
   z-index: 0;
+  filter: drop-shadow(0px 1px 0px rgba(255,255,255,0.1)); /* Beveled bottom glow */
 }
 
 .card {
