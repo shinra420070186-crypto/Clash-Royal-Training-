@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Elixir & Cycle Master</title>
-  <!-- Link to our new external stylesheet -->
+  <!-- Link to our external stylesheet -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -52,9 +52,8 @@
   <!-- SCREEN: CUSTOM DECK BUILDER -->
   <div id="createDeckScreen" class="screen">
     <div class="header">
-      <button class="btn-back" id="btnBackCreate">← Back</button>
+      <button class="btn-back left" id="btnBackCreate">← Back</button>
       <div class="title">Create Deck</div>
-      <div style="width:60px"></div>
     </div>
     <div class="custom-deck-slots" id="customDeckSlots"></div>
     <button class="next-btn" id="btnStartCustom" style="display:none;margin-bottom:20px">Start Training</button>
@@ -67,9 +66,8 @@
   <!-- SCREEN: PRESET DECKS -->
   <div id="presetDeckScreen" class="screen">
     <div class="header">
-      <button class="btn-back" id="btnBackPreset">← Back</button>
+      <button class="btn-back left" id="btnBackPreset">← Back</button>
       <div class="title">Select Deck</div>
-      <div style="width:60px"></div>
     </div>
     <input type="text" id="deckSearch" class="search-bar" placeholder="Search decks...">
     <div class="preset-deck-list" id="presetDeckList"></div>
@@ -78,9 +76,8 @@
   <!-- SCREEN: SELECT MODE -->
   <div id="menuScreen" class="screen">
     <div class="header">
-      <button class="btn-back" id="btnChangeDeck">← Change Deck</button>
       <div class="title" id="selectedDeckTitle">Deck</div>
-      <div style="width:60px"></div>
+      <button class="btn-back right" id="btnChangeDeck">Change Deck</button>
     </div>
     <div class="menu-logo">TRAINING MODE</div>
     <div class="menu-subtitle">Select your training focus</div>
@@ -144,9 +141,8 @@
   <!-- SCREEN: ARENA / GAMEPLAY -->
   <div id="gameScreen" class="screen">
     <div class="header">
-      <button class="btn-back" id="btnExit">← Exit</button>
+      <button class="btn-back left" id="btnExit">← Exit</button>
       <div class="title" id="modeTitle">Mode</div>
-      <div style="width:60px"></div>
     </div>
     <div class="stats-bar">
       <div class="stat-item">
@@ -189,7 +185,6 @@
     <button class="btn-back" style="display:block;text-align:center;margin-top:10px;border:none;" id="btnGoMenu">Main Menu</button>
   </div>
   
-  <!-- Link to our new external JavaScript files -->
   <!-- Load data first, then app logic -->
   <script src="data.js"></script>
   <script src="app.js"></script>
