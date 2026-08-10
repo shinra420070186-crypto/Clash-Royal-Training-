@@ -20,9 +20,9 @@
   --seq-wrong-border: rgba(239,68,68,0.3);
   
   /* Premium Glassmorphism Variables - Dark Mode */
-  --glass-bg: rgba(24, 24, 27, 0.65);
+  --glass-bg: rgba(24, 24, 27, 0.75);
   --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  --glass-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
 }
 
 :root.light-mode {
@@ -47,9 +47,9 @@
   --seq-wrong-border: rgba(220,38,38,0.4);
   
   /* Premium Glassmorphism Variables - Light Mode */
-  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-bg: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(255, 255, 255, 0.6);
-  --glass-shadow: 0 12px 40px rgba(31, 38, 135, 0.1);
+  --glass-shadow: 0 12px 30px rgba(31, 38, 135, 0.1);
 }
 
 * {
@@ -71,7 +71,6 @@ body {
   align-items: center;
   transition: background-color 0.3s ease, color 0.3s ease;
   
-  /* Subtle ambient lighting to make the glass blur pop */
   background-image: 
     radial-gradient(circle at 15% 10%, rgba(217, 70, 239, 0.05) 0%, transparent 40%),
     radial-gradient(circle at 85% 85%, rgba(126, 34, 206, 0.05) 0%, transparent 40%);
@@ -90,36 +89,45 @@ body {
   max-width: 600px;
   min-height: 100vh;
   flex-direction: column;
-  padding: 90px 20px 24px 20px; /* Base padding for normal screens under the fixed header */
+  /* Leaves room for the massive fixed top bar on all generic screens */
+  padding: 120px 20px 24px 20px;
   position: relative;
-}
-
-/* Create Deck screen manages its own padding for the cards grid */
-#createDeckScreen {
-  padding: 0; 
 }
 
 .screen.active { display: flex; }
 
-/* === FIXED TOP NAVIGATION BAR (Hides cards passing underneath) === */
+/* The home screen has no fixed bar, reset its padding */
+#deckSelectScreen {
+  padding-top: 60px; 
+}
+
+/* The Create Deck screen connects perfectly to the 100px fixed bar */
+#createDeckScreen {
+  padding-top: 100px;
+}
+
+/* === UNIFIED IOS TOP GLASS BAR === */
 .ios-top-bar {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 70px;
+  height: 100px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
-  background: var(--bg-main); /* Acts as a solid wall so cards disappear perfectly */
+  align-items: flex-end; 
+  padding: 0 20px 16px 20px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
   z-index: 100;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
 .ios-top-bar .title {
   position: absolute;
   left: 50%;
+  bottom: 24px;
   transform: translateX(-50%);
   font-size: 16px;
   font-weight: 700;
@@ -129,42 +137,82 @@ body {
   white-space: nowrap;
 }
 
-.btn-back {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  position: relative;
-  z-index: 2;
+.ios-top-bar .left-action {
+  position: absolute;
+  left: 20px;
+  bottom: 16px;
 }
 
-.btn-back:active { background: var(--bg-card-light); }
-
-/* === STICKY FIXED DECK SLOTS CONTAINER === */
-.custom-deck-slots {
-  position: fixed;
-  top: 85px; /* Sits right beneath the solid header */
-  left: 20px;
+.ios-top-bar .right-action {
+  position: absolute;
   right: 20px;
-  z-index: 50;
+  bottom: 16px;
+}
+
+.btn-back {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.btn-back:active { 
+  transform: scale(0.96); 
+  background: var(--bg-card-light); 
+}
+
+.sort-btn {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.sort-btn:active { 
+  transform: scale(0.96); 
+  background: var(--bg-card-light);
+}
+
+.sort-icon {
+  color: var(--text-main);
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+/* === STICKY FROSTED DECK SLOTS (Seamless connection to top bar) === */
+.custom-deck-slots {
+  position: sticky;
+  top: 100px; /* Aligns perfectly with the 100px top bar */
+  z-index: 90;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
+  margin-bottom: 24px;
   padding: 16px;
-  border-radius: 24px;
+  border-radius: 0 0 24px 24px; /* Flat top, rounded bottom */
   background: var(--glass-bg);
   backdrop-filter: blur(24px) saturate(150%);
   -webkit-backdrop-filter: blur(24px) saturate(150%);
   border: 1px solid var(--glass-border);
+  border-top: none; /* Merges seamlessly */
   box-shadow: var(--glass-shadow);
 }
 
-/* Empty Slot Inner Styling */
 .custom-slot {
   aspect-ratio: 3/4;
   background: rgba(0, 0, 0, 0.15);
@@ -206,45 +254,14 @@ body {
   opacity: 0.3;
 }
 
-/* === FIXED "BY ELIXIR" PILL BUTTON === */
-.sort-btn {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  color: var(--text-main);
-  padding: 8px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-  position: relative;
-  z-index: 10;
-}
-
-.sort-btn:active { 
-  transform: scale(0.96); 
-  background: var(--bg-card-light);
-}
-
-.sort-icon {
-  color: var(--text-main);
-  font-size: 10px;
-  opacity: 0.6;
-}
-
 /* === SCROLLING CARD POOL GRID === */
-/* Starts exactly below the fixed deck slots */
+/* Since it sits below the sticky block in the DOM, it just flows naturally under it when scrolled! */
 .card-pool-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
   gap: 12px;
-  padding-top: 310px; /* 70 (header) + ~210 (slots) + 30 (spacing) */
+  padding: 4px;
   padding-bottom: 120px; /* Safe space at the bottom for floating buttons */
-  padding-left: 20px;
-  padding-right: 20px;
 }
 
 .card-pool-item {
