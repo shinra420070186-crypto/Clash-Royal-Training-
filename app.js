@@ -1,4 +1,3 @@
-// app.js - Holds the game logic and UI interactions
 const state = {
   mode: null,
   difficulty: null,
@@ -179,6 +178,13 @@ btnStartCustom.addEventListener('click', () => {
 deckPreviewModal.addEventListener('click', (e) => {
   if (e.target === deckPreviewModal) {
     deckPreviewModal.classList.remove('active');
+  }
+});
+
+// Close Difficulty Modal when clicking outside
+difficultyModal.addEventListener('click', (e) => {
+  if (e.target === difficultyModal) {
+    difficultyModal.classList.remove('active');
   }
 });
 
