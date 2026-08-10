@@ -76,10 +76,12 @@ body {
 
 .header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   margin-bottom: 24px;
   width: 100%;
+  position: relative;
+  min-height: 32px;
 }
 
 .title {
@@ -88,6 +90,12 @@ body {
   text-transform: uppercase;
   letter-spacing: 1.5px;
   color: var(--text-main);
+  text-align: center;
+  width: 100%;
+  padding: 0 90px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .btn-back {
@@ -103,6 +111,22 @@ body {
 }
 
 .btn-back:active { background: var(--bg-card-light); }
+
+.header .btn-back.left {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.header .btn-back.right {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  padding: 4px 8px;
+}
 
 .stats-bar {
   display: flex;
