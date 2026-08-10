@@ -28,7 +28,6 @@ const state = {
   customDeckNames: [],
   selectedPresetIndex: -1,
   sortDirection: 'asc',
-  // New AI Play Tracking
   playsThisRound: 0,
   targetPlays: 0,
   botTargetHold: 0
@@ -326,10 +325,9 @@ function startGame() {
   state.streak = 0;
   state.lastPlayedCard = null;
   
-  // Set target to play 4 to 6 cards before pausing
   state.playsThisRound = 0;
   state.targetPlays = Math.floor(Math.random() * 3) + 4; 
-  state.botTargetHold = Math.floor(Math.random() * 6) + 5;
+  state.botTargetHold = Math.floor(Math.random() * 5) + 4;
   
   state.matchTime = 0;
   state.matchDuration = 180000;
@@ -477,25 +475,40 @@ function playOpponentCard(now) {
   
   let canPlay = false;
   let affordable = [];
+  let picked = null;
   
   if (state.mode === 'hand') {
     affordable = state.hand.map((c, i) => ({c, i}));
     canPlay = true; 
+    picked = affordable[Math.floor(Math.random() * affordable.length)];
   } else {
     affordable = state.hand.map((c, i) => ({c, i})).filter(x => x.c.cost <= state.elixir);
+    
     if (affordable.length > 0) {
+      let cycleCards = affordable.filter(x => x.c.cost <= 2);
+      
+      // 1. Force play if hitting Elixir cap
       if (state.elixir >= 9.5) {
         canPlay = true;
-      } else if (state.elixir >= state.botTargetHold) {
+        picked = affordable[Math.floor(Math.random() * affordable.length)];
+      } 
+      // 2. Play if we hit our internal holding goal
+      else if (state.elixir >= state.botTargetHold) {
         canPlay = true;
+        picked = affordable[Math.floor(Math.random() * affordable.length)];
+      } 
+      // 3. New Human-Like Behavior: Occasionally cycle a cheap card while waiting
+      else if (cycleCards.length > 0 && Math.random() < 0.35 && state.elixir >= cycleCards[0].c.cost + 1) {
+        canPlay = true;
+        picked = cycleCards[Math.floor(Math.random() * cycleCards.length)];
       }
     } else {
-      state.botTargetHold = Math.floor(Math.random() * 5) + 4; 
+      // If totally broke, rethink strategy
+      state.botTargetHold = Math.floor(Math.random() * 5) + 5; 
     }
   }
   
-  if (canPlay) {
-    let picked = affordable[Math.floor(Math.random() * affordable.length)];
+  if (canPlay && picked) {
     let playIdx = picked.i;
     let playedCard = picked.c;
     
@@ -511,32 +524,41 @@ function playOpponentCard(now) {
     state.nextCycleTime = now + 350;
     state.cycleSlotIndex = playIdx;
     
-    // Check if we hit the target number of plays
     state.playsThisRound++;
     
+    // Pause for question if we reached target plays
     if (state.playsThisRound >= state.targetPlays) {
-      state.nextPlayTime = Infinity; // Stop playing
+      state.nextPlayTime = Infinity; 
       setTimeout(() => {
         if (state.phase === 'playing') {
           state.phase = 'question';
           triggerQuestion();
         }
-      }, 800 + Math.random() * 600); // Small pause so the user can process the last card
+      }, 800 + Math.random() * 600); // Visual pause before prompt
       return;
     }
     
+    // Set dynamic timing for the next card drop
     if (state.mode === 'hand') {
-      state.nextPlayTime = now + 1500 + Math.random() * 2000;
+      state.nextPlayTime = now + 1800 + Math.random() * 1500;
     } else {
-      if (Math.random() < 0.45 && state.elixir >= 2) {
-        state.botTargetHold = 0;
-        state.nextPlayTime = now + 500 + Math.random() * 800;
-      } else {
-        state.botTargetHold = Math.floor(Math.random() * 6) + 5;
-        state.nextPlayTime = now + 1200 + Math.random() * 1500;
+      // If it was a cheap cycle play, wait a bit
+      if (picked.c.cost <= 2 && state.elixir < 5) {
+        state.nextPlayTime = now + 1800 + Math.random() * 1000;
+      } 
+      // Combo logic: wait enough time for the human to see it!
+      else if (Math.random() < 0.40 && state.elixir >= 3) {
+        state.botTargetHold = 0; 
+        state.nextPlayTime = now + 1200 + Math.random() * 600; // Slower combo: 1.2s - 1.8s
+      } 
+      // Standard waiting
+      else {
+        state.botTargetHold = Math.floor(Math.random() * 6) + 4; // Shift strategy to bank 4-9
+        state.nextPlayTime = now + 2000 + Math.random() * 1500;
       }
     }
   } else {
+    // If couldn't play, check again in a fraction of a second
     state.nextPlayTime = now + 300;
   }
 }
@@ -836,10 +858,10 @@ function continueGame() {
   btnNext.style.display = 'none';
   actionTitle.innerText = 'Watch the opponent play...';
   
-  // Set new target for the next round (4 to 6 plays)
+  // Set target for the next round (4 to 6 plays)
   state.playsThisRound = 0;
   state.targetPlays = Math.floor(Math.random() * 3) + 4; 
-  state.botTargetHold = Math.floor(Math.random() * 6) + 5;
+  state.botTargetHold = Math.floor(Math.random() * 5) + 4;
   
   state.phase = 'playing';
   state.lastFrameTime = performance.now();
