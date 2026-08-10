@@ -3,345 +3,630 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Clash Royale Tracker Trainer</title>
+  <title>Elixir & Cycle Master</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Lilita One', cursive, sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       user-select: none;
       -webkit-user-select: none;
-      background-color: #0f172a;
+      background-color: #090d16;
     }
-    .cr-text-stroke {
-      -webkit-text-stroke: 1.5px #000;
-      text-shadow: 2px 2px 0px #000;
+    
+    .elixir-gradient {
+      background: linear-gradient(90deg, #ec4899 0%, #d946ef 50%, #a855f7 100%);
+      box-shadow: 0 0 15px rgba(217, 70, 239, 0.4);
     }
-    .arena-bg {
-      background: linear-gradient(180deg, #43a047 0%, #2e7d32 100%);
-      border: 4px solid #1b5e20;
+
+    .card-shadow {
+      box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.5);
     }
-    .card-drop-anim {
-      animation: dropIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+
+    .pulse-rate {
+      animation: pulseAlert 1.2s ease-in-out infinite;
     }
-    @keyframes dropIn {
-      0% { transform: scale(1.5) translateY(-20px); opacity: 0; }
-      100% { transform: scale(1) translateY(0); opacity: 1; }
+
+    @keyframes pulseAlert {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.08); opacity: 0.85; }
     }
-    .elixir-bar-fill {
-      background: linear-gradient(180deg, #ff4081 0%, #c2185b 100%);
-      box-shadow: 0 0 10px #e91e63;
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
     }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
   </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-2 text-white">
+<body class="text-slate-100 flex flex-col items-center justify-center min-h-screen p-2 sm:p-4">
 
-  <!-- Main Phone Interface -->
-  <div class="w-full max-w-md h-[720px] bg-slate-900 rounded-3xl border-4 border-slate-700 overflow-hidden flex flex-col justify-between p-4 relative shadow-2xl">
-    
-    <!-- Top Mode Switches -->
-    <div class="flex justify-between items-center bg-slate-800 p-2 rounded-xl border-2 border-slate-700 z-10">
-      <button id="btn-mode-elixir" onclick="setMode('elixir')" class="px-3 py-1.5 bg-yellow-500 text-black rounded-lg text-sm font-bold shadow-md w-1/2 mr-1">Elixir Tracker</button>
-      <button id="btn-mode-card" onclick="setMode('card')" class="px-3 py-1.5 bg-slate-700 text-white rounded-lg text-sm font-bold shadow-md w-1/2 ml-1">Card Cycle</button>
+  <!-- Main App Shell -->
+  <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[760px] relative">
+
+    <!-- HEADER & HIGH SCORE -->
+    <header class="bg-slate-950/80 backdrop-blur border-b border-slate-800 px-5 py-3.5 flex justify-between items-center z-10">
+      <div>
+        <h1 class="text-base font-extrabold bg-gradient-to-r from-pink-500 to-purple-400 bg-clip-text text-transparent">
+          ELIXIR & CYCLE MASTER
+        </h1>
+        <p class="text-[11px] text-slate-400 font-medium">Clash Royale Skill Trainer</p>
+      </div>
+      <div class="text-right">
+        <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400">BEST SCORE</div>
+        <div id="high-score-display" class="text-base font-extrabold text-amber-400">0</div>
+      </div>
+    </header>
+
+    <!-- RATE CHANGE OVERLAY BANNER -->
+    <div id="rate-banner" class="absolute inset-x-0 top-16 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black text-center py-3 text-lg tracking-widest shadow-2xl z-30 transition-all duration-300 transform -translate-y-full opacity-0">
+      DOUBLE ELIXIR!
     </div>
 
-    <!-- Arena / Bot Play Area -->
-    <div class="arena-bg w-full h-72 rounded-2xl relative flex flex-col items-center justify-center p-3 overflow-hidden shadow-inner mt-4 mb-4">
-      <div id="status-badge" class="absolute top-3 bg-black/70 px-4 py-1.5 rounded-full text-xs text-yellow-400 tracking-wider font-bold z-10 border border-yellow-600">PREPARING MATCH...</div>
-      
-      <!-- Card Image Slot -->
-      <div id="played-card-slot" class="relative w-24 h-32 hidden card-drop-anim flex flex-col items-center justify-center">
-        <!-- The dynamic image pulled from your GitHub folder -->
-        <img id="played-card-icon" src="" alt="Card" class="w-full h-full object-contain drop-shadow-2xl" />
+    <!-- VIEW 1: MAIN MENU & SELECTION -->
+    <div id="view-menu" class="flex-1 p-5 flex flex-col justify-between overflow-y-auto">
+      <div class="space-y-4">
         
-        <!-- Elixir Cost Badge -->
-        <div id="played-card-cost" class="absolute -top-3 -left-3 bg-pink-600 border-2 border-black text-white text-sm px-2.5 py-0.5 rounded-full font-bold shadow-lg z-10">
-          2
+        <!-- Mode Selection -->
+        <div>
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block">1. Choose Training Mode</label>
+          <div class="grid grid-cols-1 gap-2.5">
+            <button onclick="selectMode('elixir')" id="mode-btn-elixir" class="mode-select-btn p-3.5 bg-slate-800 hover:bg-slate-750 border-2 border-pink-500/50 rounded-2xl flex items-center gap-3 transition-all text-left">
+              <div class="w-10 h-10 rounded-xl bg-pink-500/20 text-pink-400 font-black text-lg flex items-center justify-center border border-pink-500/30">⚡</div>
+              <div>
+                <div class="font-bold text-sm text-slate-100">Elixir Counting</div>
+                <div class="text-xs text-slate-400">Master real-time elixir tracking & regeneration.</div>
+              </div>
+            </button>
+
+            <button onclick="selectMode('cycle')" id="mode-btn-cycle" class="mode-select-btn p-3.5 bg-slate-800 hover:bg-slate-750 border-2 border-slate-700 rounded-2xl flex items-center gap-3 transition-all text-left">
+              <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 font-black text-lg flex items-center justify-center border border-indigo-500/30">🔄</div>
+              <div>
+                <div class="font-bold text-sm text-slate-100">Card Tracking</div>
+                <div class="text-xs text-slate-400">Track 4-card hands, next cards, and return cycles.</div>
+              </div>
+            </button>
+
+            <button onclick="selectMode('combined')" id="mode-btn-combined" class="mode-select-btn p-3.5 bg-slate-800 hover:bg-slate-750 border-2 border-slate-700 rounded-2xl flex items-center gap-3 transition-all text-left">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 font-black text-lg flex items-center justify-center border border-amber-500/30">👑</div>
+              <div>
+                <div class="font-bold text-sm text-slate-100">Combined Master</div>
+                <div class="text-xs text-slate-400">Simultaneous elixir counting + cycle tracking.</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Difficulty Selection -->
+        <div>
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 block">2. Select Match Length</label>
+          <div class="grid grid-cols-2 gap-3">
+            <button onclick="selectDifficulty('normal')" id="diff-btn-normal" class="diff-select-btn p-3 bg-slate-800 border-2 border-emerald-500/50 rounded-xl text-center">
+              <div class="font-bold text-sm text-emerald-400">Normal (3m)</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">1x → 2x Elixir</div>
+            </button>
+            <button onclick="selectDifficulty('hard')" id="diff-btn-hard" class="diff-select-btn p-3 bg-slate-800 border-2 border-slate-700 rounded-xl text-center">
+              <div class="font-bold text-sm text-slate-300">Hard (4m)</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">1x → 2x → 3x Elixir</div>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-extrabold text-base rounded-2xl shadow-lg shadow-pink-500/25 active:scale-[0.98] transition-all">
+        START TRAINING MATCH
+      </button>
+    </div>
+
+    <!-- VIEW 2: ARENA / GAMEPLAY -->
+    <div id="view-game" class="flex-1 flex flex-col justify-between p-4 hidden relative overflow-hidden">
+      
+      <!-- Top HUD Stats Bar -->
+      <div class="flex justify-between items-center bg-slate-950/60 p-3 rounded-2xl border border-slate-800">
+        <div>
+          <div class="text-[10px] text-slate-400 font-bold uppercase">TIMER</div>
+          <div id="timer-display" class="text-lg font-black text-slate-100 font-mono">03:00</div>
+        </div>
+
+        <div class="text-center">
+          <div id="rate-badge" class="px-3 py-1 bg-pink-500/20 border border-pink-500/40 text-pink-400 font-extrabold text-xs rounded-full">
+            1x SINGLE
+          </div>
+        </div>
+
+        <div class="text-right">
+          <div class="text-[10px] text-slate-400 font-bold uppercase">SCORE / STREAK</div>
+          <div class="text-sm font-black text-amber-400">
+            <span id="score-display">0</span> <span class="text-xs text-slate-500">pt</span> (<span id="streak-display" class="text-emerald-400">0</span>🔥)
+          </div>
         </div>
       </div>
 
-      <!-- Feedback Overlay -->
-      <div id="feedback-overlay" class="absolute inset-0 bg-black/85 flex flex-col items-center justify-center gap-4 hidden z-20">
-        <div id="feedback-text" class="text-4xl cr-text-stroke tracking-wide">CORRECT!</div>
-        <button onclick="startTrainer()" class="px-8 py-3 bg-blue-500 hover:bg-blue-400 text-white rounded-xl text-xl font-bold shadow-lg border-b-4 border-blue-700 active:border-b-0 active:translate-y-1 transition-all">Next Drill</button>
+      <!-- PLAYED CARDS LOG / ARENA FEED -->
+      <div class="flex-1 my-3 flex flex-col justify-end gap-2 overflow-hidden border border-slate-800/80 rounded-2xl p-3 bg-slate-950/40">
+        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center mb-1">Opponent Play Log</div>
+        <div id="play-history-feed" class="flex items-center justify-center gap-2 min-h-[90px]">
+          <!-- Dynamic Cards Append Here -->
+          <span class="text-xs text-slate-600 font-medium">Waiting for opponent play...</span>
+        </div>
       </div>
+
+      <!-- CONTINUOUS SMOOTH ELIXIR BAR -->
+      <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-2">
+        <div class="flex justify-between items-center text-xs font-bold">
+          <span class="text-slate-400 uppercase tracking-wider text-[11px]">Opponent Elixir Bar</span>
+          <span id="rate-speed-text" class="text-pink-400 text-[11px]">+1 every 2.8s</span>
+        </div>
+        
+        <div class="w-full bg-slate-900 h-6 rounded-xl p-1 border border-slate-800 relative overflow-hidden">
+          <div id="elixir-bar-fill" class="h-full elixir-gradient rounded-lg transition-all duration-75" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <!-- QUESTION / INTERACTIVE OVERLAY -->
+      <div id="question-modal" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md p-5 flex flex-col justify-between hidden z-20">
+        
+        <div class="space-y-3">
+          <div class="inline-block px-3 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold text-xs rounded-full">
+            PAUSED • CHECKPOINT
+          </div>
+          <h2 id="question-prompt" class="text-lg font-extrabold text-slate-100 leading-snug">
+            How much elixir does the opponent have right now?
+          </h2>
+          <p id="question-subtext" class="text-xs text-slate-400">Select your answer based on card plays and regen speed.</p>
+        </div>
+
+        <!-- Answers Grid Container -->
+        <div id="options-container" class="my-auto grid grid-cols-2 gap-3 w-full">
+          <!-- Dynamic buttons injected here -->
+        </div>
+
+        <!-- Feedback Drawer -->
+        <div id="feedback-drawer" class="hidden p-3.5 rounded-2xl text-center space-y-2 border">
+          <div id="feedback-result" class="font-black text-lg">CORRECT!</div>
+          <div id="feedback-explanation" class="text-xs font-medium"></div>
+          <button onclick="resumeMatch()" class="w-full py-3 bg-slate-100 text-slate-900 font-extrabold rounded-xl text-sm mt-2">
+            Continue Match →
+          </button>
+        </div>
+
+      </div>
+
     </div>
 
-    <!-- Question & Options Panel -->
-    <div id="question-panel" class="w-full bg-slate-800 p-4 rounded-2xl border-2 border-slate-700 flex flex-col items-center gap-3">
-      <div id="question-title" class="text-sm text-gray-300 text-center uppercase tracking-wide font-bold">Watch the arena...</div>
-      
-      <!-- Interactive Grid injected by JavaScript -->
-      <div id="options-grid" class="grid grid-cols-2 gap-3 w-full hidden"></div>
-    </div>
+    <!-- VIEW 3: GAME OVER SUMMARY -->
+    <div id="view-gameover" class="flex-1 p-6 flex flex-col justify-between hidden text-center">
+      <div class="space-y-4 my-auto">
+        <div class="text-4xl">🏆</div>
+        <h2 class="text-2xl font-black text-slate-100">MATCH COMPLETE</h2>
+        
+        <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3 max-w-xs mx-auto">
+          <div>
+            <div class="text-xs text-slate-400 font-bold uppercase">FINAL SCORE</div>
+            <div id="final-score" class="text-3xl font-black text-amber-400">0</div>
+          </div>
+          <div class="flex justify-between text-xs pt-2 border-t border-slate-800">
+            <span class="text-slate-400">Best Streak:</span>
+            <span id="final-streak" class="font-bold text-emerald-400">0</span>
+          </div>
+        </div>
+      </div>
 
-    <!-- Smooth Elixir Bar -->
-    <div id="elixir-container" class="w-full bg-slate-950 p-3 rounded-xl border-2 border-pink-900 flex flex-col gap-1 mt-4">
-      <div class="flex justify-between text-xs px-1 text-pink-300 font-bold tracking-wide">
-        <span>OPPONENT ELIXIR</span>
-      </div>
-      <div class="w-full bg-gray-900 h-5 rounded-full overflow-hidden border-2 border-slate-700 p-0.5 relative">
-        <!-- Ticking bar -->
-        <div id="elixir-bar" class="h-full elixir-bar-fill rounded-full" style="width: 100%;"></div>
-      </div>
+      <button onclick="showMenu()" class="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-sm rounded-2xl border border-slate-700">
+        Back to Main Menu
+      </button>
     </div>
 
   </div>
 
   <script>
-    // Master Card Database matching the filenames required
-    const CARDS = [
-      { id: 'skeletons', name: 'Skeletons', cost: 1 },
-      { id: 'ice-spirit', name: 'Ice Spirit', cost: 1 },
-      { id: 'zap', name: 'Zap', cost: 2 },
-      { id: 'log', name: 'The Log', cost: 2 },
-      { id: 'archers', name: 'Archers', cost: 3 },
-      { id: 'knight', name: 'Knight', cost: 3 },
-      { id: 'arrows', name: 'Arrows', cost: 3 },
-      { id: 'miner', name: 'Miner', cost: 3 },
-      { id: 'hog-rider', name: 'Hog Rider', cost: 4 },
-      { id: 'fireball', name: 'Fireball', cost: 4 },
-      { id: 'musketeer', name: 'Musketeer', cost: 4 },
-      { id: 'valkyrie', name: 'Valkyrie', cost: 4 },
-      { id: 'poison', name: 'Poison', cost: 4 },
-      { id: 'baby-dragon', name: 'Baby Dragon', cost: 4 },
-      { id: 'giant', name: 'Giant', cost: 5 },
-      { id: 'pekka', name: 'P.E.K.K.A', cost: 7 },
-      { id: 'golem', name: 'Golem', cost: 8 }
+    // --- MASTER CARD DATABASE (Standard Competitive Deck Set) ---
+    const DECK = [
+      { id: 'skeletons', name: 'Skeletons', cost: 1, type: 'Troop' },
+      { id: 'ice-spirit', name: 'Ice Spirit', cost: 1, type: 'Troop' },
+      { id: 'the-log', name: 'The Log', cost: 2, type: 'Spell' },
+      { id: 'archers', name: 'Archers', cost: 3, type: 'Troop' },
+      { id: 'knight', name: 'Knight', cost: 3, type: 'Troop' },
+      { id: 'hog-rider', name: 'Hog Rider', cost: 4, type: 'WinCon' },
+      { id: 'fireball', name: 'Fireball', cost: 4, type: 'Spell' },
+      { id: 'tesla', name: 'Tesla', cost: 4, type: 'Building' }
     ];
 
-    let currentMode = 'elixir';
-    let currentElixir = 10;
-    let targetStopPlays = 0;
-    let playsCount = 0;
-    let elixirTimer = null;
-    let botLoopTimer = null;
-    let deck = [];
+    // --- GAME ENGINE STATE ---
+    let mode = 'elixir'; // 'elixir' | 'cycle' | 'combined'
+    let difficulty = 'normal'; // 'normal' (180s) | 'hard' (240s)
+    let maxTime = 180;
+    let timeRemaining = 180;
+    
+    let elixir = 10.0;
+    let rateMultiplier = 1; // 1x, 2x, 3x
+    
+    let score = 0;
+    let streak = 0;
+    let highScore = localStorage.getItem('elixir_master_high') || 0;
+
     let hand = [];
     let queue = [];
-    let correctAns = null;
+    let historyFeed = [];
 
-    function setMode(mode) {
-      currentMode = mode;
+    let tickerInterval = null;
+    let botTimer = null;
+    let playsInCurrentPhase = 0;
+    let targetPlaysForPause = 4;
+    let currentQuestionData = null;
+    let multiSelectState = [];
+
+    // --- INITIALIZATION ---
+    document.getElementById('high-score-display').innerText = highScore;
+
+    function selectMode(m) {
+      mode = m;
+      document.querySelectorAll('.mode-select-btn').forEach(b => {
+        b.classList.remove('border-pink-500/50', 'border-indigo-500/50', 'border-amber-500/50');
+        b.classList.add('border-slate-700');
+      });
       
-      const elxBtn = document.getElementById('btn-mode-elixir');
-      const crdBtn = document.getElementById('btn-mode-card');
-      
-      elxBtn.className = mode === 'elixir' ? 'px-3 py-1.5 bg-yellow-500 text-black rounded-lg text-sm font-bold shadow-md w-1/2 mr-1' : 'px-3 py-1.5 bg-slate-700 text-white rounded-lg text-sm font-bold shadow-md w-1/2 mr-1';
-      crdBtn.className = mode === 'card' ? 'px-3 py-1.5 bg-yellow-500 text-black rounded-lg text-sm font-bold shadow-md w-1/2 ml-1' : 'px-3 py-1.5 bg-slate-700 text-white rounded-lg text-sm font-bold shadow-md w-1/2 ml-1';
-      
-      document.getElementById('elixir-container').style.display = mode === 'elixir' ? 'flex' : 'none';
-      startTrainer();
+      const activeBtn = document.getElementById(`mode-btn-${m}`);
+      if(m === 'elixir') activeBtn.classList.add('border-pink-500/50');
+      if(m === 'cycle') activeBtn.classList.add('border-indigo-500/50');
+      if(m === 'combined') activeBtn.classList.add('border-amber-500/50');
     }
 
-    function startTrainer() {
-      clearInterval(elixirTimer);
-      clearTimeout(botLoopTimer);
+    function selectDifficulty(d) {
+      difficulty = d;
+      document.querySelectorAll('.diff-select-btn').forEach(b => {
+        b.classList.remove('border-emerald-500/50');
+        b.classList.add('border-slate-700');
+        b.querySelector('div').classList.replace('text-emerald-400', 'text-slate-300');
+      });
+
+      const activeBtn = document.getElementById(`diff-btn-${d}`);
+      activeBtn.classList.add('border-emerald-500/50');
+      activeBtn.querySelector('div').classList.replace('text-slate-300', 'text-emerald-400');
+    }
+
+    // --- MATCH CONTROLLER ---
+    function startGame() {
+      // Setup timing
+      maxTime = difficulty === 'normal' ? 180 : 240;
+      timeRemaining = maxTime;
+      elixir = 10.0;
+      rateMultiplier = 1;
+      score = 0;
+      streak = 0;
+      playsInCurrentPhase = 0;
+      historyFeed = [];
+      targetPlaysForPause = Math.floor(Math.random() * 3) + 3; // 3 to 5 plays
+
+      // Setup Cards
+      const shuffled = [...DECK].sort(() => 0.5 - Math.random());
+      hand = shuffled.slice(0, 4);
+      queue = shuffled.slice(4, 8);
+
+      // UI Switches
+      document.getElementById('view-menu').classList.add('hidden');
+      document.getElementById('view-gameover').classList.add('hidden');
+      document.getElementById('view-game').classList.remove('hidden');
+      document.getElementById('question-modal').classList.add('hidden');
+
+      // Hide Elixir bar in cycle mode if user wants pure cycle focus (or keep visible)
+      document.getElementById('score-display').innerText = score;
+      document.getElementById('streak-display').innerText = streak;
+
+      updateRateUI();
+      renderPlayFeed();
+
+      // Start Main Ticker (Ticks every 50ms for smooth continuous math)
+      clearInterval(tickerInterval);
+      tickerInterval = setInterval(gameLoopTick, 50);
+
+      scheduleBotPlay();
+    }
+
+    // --- CONTINUOUS ENGINE LOOP (Every 50ms) ---
+    function gameLoopTick() {
+      timeRemaining -= 0.05;
       
-      document.getElementById('feedback-overlay').classList.add('hidden');
-      document.getElementById('options-grid').classList.add('hidden');
-      document.getElementById('played-card-slot').classList.add('hidden');
-      document.getElementById('status-badge').innerText = "TRACKING...";
-      document.getElementById('question-title').innerText = currentMode === 'elixir' ? "Tracking Elixir..." : "Tracking Card Cycle...";
-
-      // Build random 8-card deck
-      deck = [...CARDS].sort(() => 0.5 - Math.random()).slice(0, 8);
-      hand = deck.slice(0, 4);
-      queue = deck.slice(4, 8);
-
-      if (currentMode === 'elixir') {
-        initElixirTrainer();
-      } else {
-        initCardCycleTrainer();
-      }
-    }
-
-    // --- ELIXIR LOGIC ---
-    function initElixirTrainer() {
-      currentElixir = 10;
-      playsCount = 0;
-      // Bot will play randomly between 3 and 7 cards before stopping
-      targetStopPlays = Math.floor(Math.random() * 5) + 3; 
-
-      updateElixirBar();
-
-      // Smooth ticker: adds 0.1 Elixir every 280ms (equals 1 Elixir per 2.8 seconds)
-      elixirTimer = setInterval(() => {
-        if (currentElixir < 10) {
-          currentElixir = Math.min(10, currentElixir + 0.1);
-          updateElixirBar();
-        }
-      }, 280);
-
-      // Start the bot's random plays
-      const initialDelay = Math.floor(Math.random() * 1500) + 1000;
-      botLoopTimer = setTimeout(triggerBotPlay, initialDelay);
-    }
-
-    function triggerBotPlay() {
-      if (playsCount >= targetStopPlays) {
-        clearInterval(elixirTimer);
-        askElixirQuestion();
+      if (timeRemaining <= 0) {
+        endGame();
         return;
       }
 
-      // Filter cards the bot can actually afford right now
-      const playable = hand.filter(c => c.cost <= currentElixir);
+      // Check Rate Transitions
+      const elapsedTime = maxTime - timeRemaining;
+      let newMultiplier = 1;
 
-      if (playable.length > 0) {
-        // Randomly select ANY affordable card, not just the highest one
-        const selectedCard = playable[Math.floor(Math.random() * playable.length)];
-        
-        currentElixir -= selectedCard.cost;
-        updateElixirBar();
-        displayPlayedCard(selectedCard);
-
-        // Standard 4-card cycle mechanic
-        hand = hand.filter(c => c.id !== selectedCard.id);
-        const drawnCard = queue.shift();
-        hand.push(drawnCard);
-        queue.push(selectedCard);
-
-        playsCount++;
+      if (difficulty === 'normal') {
+        if (elapsedTime >= 120) newMultiplier = 2; // 2:00 -> 3:00
+      } else {
+        if (elapsedTime >= 120 && elapsedTime < 180) newMultiplier = 2; // 2:00 -> 3:00
+        else if (elapsedTime >= 180) newMultiplier = 3; // 3:00 -> 4:00
       }
 
-      // Humanized random delay between 2 and 4.5 seconds
-      const nextDelay = Math.floor(Math.random() * 2500) + 2000;
-      botLoopTimer = setTimeout(triggerBotPlay, nextDelay);
+      if (newMultiplier !== rateMultiplier) {
+        rateMultiplier = newMultiplier;
+        triggerRateBanner(rateMultiplier === 2 ? "DOUBLE ELIXIR!" : "TRIPLE ELIXIR!");
+        updateRateUI();
+      }
+
+      // Regeneration Calculation
+      // 1x = +1 per 2.8s -> rate = 1/2.8 per sec -> 0.05 / 2.8 per tick
+      const ratePerSec = rateMultiplier === 1 ? (1 / 2.8) : (rateMultiplier === 2 ? (1 / 1.4) : (1 / 0.93));
+      elixir = Math.min(10.0, elixir + (ratePerSec * 0.05));
+
+      // Update UI
+      updateTimerUI();
+      updateElixirBarUI();
     }
 
-    function askElixirQuestion() {
-      document.getElementById('status-badge').innerText = "STOP! GUESS ELIXIR";
-      document.getElementById('question-title').innerText = "How much Elixir does the opponent have?";
-      
-      // Real players only track whole numbers
-      correctAns = Math.floor(currentElixir);
-      
-      let options = new Set([correctAns]);
-      while (options.size < 4) {
-        let fake = Math.max(0, Math.min(10, correctAns + (Math.floor(Math.random() * 5) - 2)));
-        options.add(fake);
-      }
-
-      renderTextOptions(Array.from(options).sort((a, b) => a - b), (selected) => {
-        showFeedback(selected === correctAns, `They had ${correctAns} Elixir.`);
-      });
+    function scheduleBotPlay() {
+      clearTimeout(botTimer);
+      // Realistic humanized play delay between 1.8s and 3.8s
+      const delay = (Math.random() * 2000 + 1800) / rateMultiplier; 
+      botTimer = setTimeout(botAttemptPlayCard, delay);
     }
 
-    // --- CARD CYCLE LOGIC ---
-    function initCardCycleTrainer() {
-      let totalCycles = Math.floor(Math.random() * 3) + 3; // 3 to 5 card plays
-      let playedSequence = [];
+    function botAttemptPlayCard() {
+      // Find cards in hand that bot can afford right now
+      const affordable = hand.filter(c => c.cost <= elixir);
 
-      for (let i = 0; i < totalCycles; i++) {
-        const playedCard = hand[Math.floor(Math.random() * hand.length)];
-        playedSequence.push(playedCard);
+      if (affordable.length > 0) {
+        // Pick a card naturally (does NOT always pick highest)
+        const cardToPlay = affordable[Math.floor(Math.random() * affordable.length)];
 
-        hand = hand.filter(c => c.id !== playedCard.id);
-        const drawnCard = queue.shift();
-        hand.push(drawnCard);
-        queue.push(playedCard);
-      }
+        // IMMEDIATELY Subtract elixir cost (Bar keeps regenerating continuously!)
+        elixir -= cardToPlay.cost;
+        updateElixirBarUI();
 
-      let seqIndex = 0;
-      const playInterval = setInterval(() => {
-        if (seqIndex >= playedSequence.length) {
-          clearInterval(playInterval);
-          askCardCycleQuestion();
+        // Cycle Deck State
+        hand = hand.filter(c => c.id !== cardToPlay.id);
+        const drawn = queue.shift();
+        hand.push(drawn);
+        queue.push(cardToPlay);
+
+        // Update Feed
+        historyFeed.unshift(cardToPlay);
+        if (historyFeed.length > 4) historyFeed.pop();
+        renderPlayFeed();
+
+        playsInCurrentPhase++;
+
+        // Pause Checkpoint
+        if (playsInCurrentPhase >= targetPlaysForPause) {
+          triggerPauseQuestion();
           return;
         }
-        displayPlayedCard(playedSequence[seqIndex]);
-        seqIndex++;
+      }
+
+      scheduleBotPlay();
+    }
+
+    // --- QUESTION GENERATOR & PAUSE CHECKPOINT ---
+    function triggerPauseQuestion() {
+      clearInterval(tickerInterval);
+      clearTimeout(botTimer);
+
+      document.getElementById('question-modal').classList.remove('hidden');
+      document.getElementById('feedback-drawer').classList.add('hidden');
+      document.getElementById('options-container').classList.remove('hidden');
+
+      // Pick Question Type based on mode
+      let activeQType = mode;
+      if (mode === 'combined') {
+        activeQType = Math.random() > 0.5 ? 'elixir' : 'cycle';
+      }
+
+      if (activeQType === 'elixir') {
+        generateElixirQuestion();
+      } else {
+        generateCycleQuestion();
+      }
+    }
+
+    function generateElixirQuestion() {
+      const realElixirInt = Math.floor(elixir);
+      document.getElementById('question-prompt').innerText = "How much elixir does the opponent have right now?";
+      document.getElementById('question-subtext').innerText = "Select the exact whole integer value based on recent plays.";
+
+      let choices = new Set([realElixirInt]);
+      while (choices.size < 4) {
+        let fake = Math.max(0, Math.min(10, realElixirInt + (Math.floor(Math.random() * 5) - 2)));
+        choices.add(fake);
+      }
+
+      const options = Array.from(choices).sort((a, b) => a - b);
+      currentQuestionData = { type: 'elixir', answer: realElixirInt };
+
+      const container = document.getElementById('options-container');
+      container.className = "grid grid-cols-2 gap-3 w-full my-auto";
+      container.innerHTML = options.map(opt => `
+        <button onclick="handleAnswer(${opt})" class="p-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-2xl text-xl font-extrabold text-pink-400 active:scale-95 transition-all">
+          ${opt} Elixir
+        </button>
+      `).join('');
+    }
+
+    function generateCycleQuestion() {
+      const subTypes = ['next', 'return'];
+      const pickedSub = subTypes[Math.floor(Math.random() * subTypes.length)];
+
+      if (pickedSub === 'next') {
+        const nextCard = queue[0];
+        document.getElementById('question-prompt').innerText = "Which card is coming NEXT into their hand?";
+        document.getElementById('question-subtext').innerText = "Track the 4-card rotation queue.";
+
+        let choices = [nextCard];
+        let pool = DECK.filter(c => c.id !== nextCard.id);
+        while (choices.length < 4) {
+          choices.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+        }
+        choices.sort(() => 0.5 - Math.random());
+
+        currentQuestionData = { type: 'cycle_next', answer: nextCard.id, name: nextCard.name };
+
+        const container = document.getElementById('options-container');
+        container.className = "grid grid-cols-2 gap-3 w-full my-auto";
+        container.innerHTML = choices.map(c => `
+          <button onclick="handleAnswer('${c.id}')" class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-2xl flex flex-col items-center gap-1 active:scale-95 transition-all">
+            <span class="text-xs font-bold text-slate-200">${c.name}</span>
+            <span class="text-[10px] px-2 py-0.5 bg-pink-500/20 text-pink-400 rounded-full font-extrabold">${c.cost} E</span>
+          </button>
+        `).join('');
+
+      } else {
+        // Return cycle position
+        const targetCard = queue[Math.floor(Math.random() * queue.length)];
+        const playsUntilReturn = queue.findIndex(c => c.id === targetCard.id) + 1;
+
+        document.getElementById('question-prompt').innerText = `In how many plays will [${targetCard.name}] return to their active hand?`;
+        document.getElementById('question-subtext').innerText = "Count card plays left in queue.";
+
+        currentQuestionData = { type: 'cycle_return', answer: playsUntilReturn, cardName: targetCard.name };
+
+        const container = document.getElementById('options-container');
+        container.className = "grid grid-cols-2 gap-3 w-full my-auto";
+        container.innerHTML = [1, 2, 3, 4].map(num => `
+          <button onclick="handleAnswer(${num})" class="p-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-2xl text-lg font-extrabold text-indigo-400 active:scale-95 transition-all">
+            ${num} ${num === 1 ? 'Play' : 'Plays'}
+          </button>
+        `).join('');
+      }
+    }
+
+    // --- ANSWER EVALUATION ---
+    function handleAnswer(userVal) {
+      document.getElementById('options-container').classList.add('hidden');
+      const drawer = document.getElementById('feedback-drawer');
+      const resText = document.getElementById('feedback-result');
+      const expText = document.getElementById('feedback-explanation');
+
+      drawer.classList.remove('hidden');
+
+      let isCorrect = false;
+      let exp = "";
+
+      if (currentQuestionData.type === 'elixir') {
+        const actual = currentQuestionData.answer;
+        isCorrect = (userVal === actual);
+        exp = `Opponent currently has <strong class="text-pink-400">${actual} Elixir</strong>.`;
+      } else if (currentQuestionData.type === 'cycle_next') {
+        isCorrect = (userVal === currentQuestionData.answer);
+        exp = `The next card in queue was <strong class="text-indigo-400">${currentQuestionData.name}</strong>.`;
+      } else if (currentQuestionData.type === 'cycle_return') {
+        isCorrect = (userVal === currentQuestionData.answer);
+        exp = `<strong class="text-indigo-400">${currentQuestionData.cardName}</strong> will return in ${currentQuestionData.answer} card play(s).`;
+      }
+
+      if (isCorrect) {
+        score += 100 + (streak * 20);
+        streak++;
+        resText.innerText = "✓ CORRECT!";
+        resText.className = "font-black text-xl text-emerald-400";
+        drawer.className = "p-4 rounded-2xl text-center space-y-2 border border-emerald-500/30 bg-emerald-500/10";
+      } else {
+        streak = 0;
+        resText.innerText = "✕ INCORRECT";
+        resText.className = "font-black text-xl text-rose-500";
+        drawer.className = "p-4 rounded-2xl text-center space-y-2 border border-rose-500/30 bg-rose-500/10";
+      }
+
+      document.getElementById('score-display').innerText = score;
+      document.getElementById('streak-display').innerText = streak;
+      expText.innerHTML = exp;
+    }
+
+    function resumeMatch() {
+      playsInCurrentPhase = 0;
+      targetPlaysForPause = Math.floor(Math.random() * 3) + 3;
+
+      document.getElementById('question-modal').classList.add('hidden');
+      
+      // Resume Tickers
+      tickerInterval = setInterval(gameLoopTick, 50);
+      scheduleBotPlay();
+    }
+
+    function endGame() {
+      clearInterval(tickerInterval);
+      clearTimeout(botTimer);
+
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem('elixir_master_high', highScore);
+        document.getElementById('high-score-display').innerText = highScore;
+      }
+
+      document.getElementById('final-score').innerText = score;
+      document.getElementById('final-streak').innerText = streak;
+
+      document.getElementById('view-game').classList.add('hidden');
+      document.getElementById('view-gameover').classList.remove('hidden');
+    }
+
+    function showMenu() {
+      document.getElementById('view-gameover').classList.add('hidden');
+      document.getElementById('view-menu').classList.remove('hidden');
+    }
+
+    // --- UI HELPER FUNCTIONS ---
+    function updateElixirBarUI() {
+      const pct = (elixir / 10.0) * 100;
+      document.getElementById('elixir-bar-fill').style.width = pct + '%';
+    }
+
+    function updateTimerUI() {
+      const mins = Math.floor(timeRemaining / 60);
+      const secs = Math.floor(timeRemaining % 60);
+      document.getElementById('timer-display').innerText = 
+        `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateRateUI() {
+      const badge = document.getElementById('rate-badge');
+      const speedText = document.getElementById('rate-speed-text');
+
+      if (rateMultiplier === 1) {
+        badge.innerText = "1x SINGLE";
+        badge.className = "px-3 py-1 bg-slate-800 border border-slate-700 text-slate-300 font-extrabold text-xs rounded-full";
+        speedText.innerText = "+1 every 2.8s";
+      } else if (rateMultiplier === 2) {
+        badge.innerText = "2x DOUBLE";
+        badge.className = "px-3 py-1 bg-purple-500/20 border border-purple-500/50 text-purple-300 font-extrabold text-xs rounded-full pulse-rate";
+        speedText.innerText = "+1 every 1.4s";
+      } else {
+        badge.innerText = "3x TRIPLE";
+        badge.className = "px-3 py-1 bg-pink-500/20 border border-pink-500/50 text-pink-300 font-extrabold text-xs rounded-full pulse-rate";
+        speedText.innerText = "+1 every 0.93s";
+      }
+    }
+
+    function triggerRateBanner(txt) {
+      const banner = document.getElementById('rate-banner');
+      banner.innerText = txt;
+      banner.classList.remove('-translate-y-full', 'opacity-0');
+      
+      setTimeout(() => {
+        banner.classList.add('-translate-y-full', 'opacity-0');
       }, 2000);
     }
 
-    function askCardCycleQuestion() {
-      document.getElementById('status-badge').innerText = "GUESS NEXT CARD";
-      document.getElementById('question-title').innerText = "Which card is about to enter their hand?";
-
-      const nextUp = queue[0];
-      correctAns = nextUp.id;
-
-      let options = [nextUp];
-      let pool = deck.filter(c => c.id !== nextUp.id);
-      
-      while (options.length < 4) {
-        let randCard = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
-        options.push(randCard);
+    function renderPlayFeed() {
+      const feed = document.getElementById('play-history-feed');
+      if (historyFeed.length === 0) {
+        feed.innerHTML = `<span class="text-xs text-slate-600 font-medium">Waiting for opponent play...</span>`;
+        return;
       }
-      options.sort(() => 0.5 - Math.random());
 
-      renderImageOptions(options, (selectedId) => {
-        showFeedback(selectedId === correctAns, `It was ${nextUp.name}.`);
-      });
+      feed.innerHTML = historyFeed.map((card, idx) => `
+        <div class="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl flex flex-col items-center card-shadow transition-all ${idx === 0 ? 'scale-105 border-pink-500/40' : 'opacity-60'}">
+          <span class="text-xs font-bold text-slate-200">${card.name}</span>
+          <span class="mt-1 px-2 py-0.5 bg-pink-500/20 text-pink-400 text-[10px] font-black rounded-full">${card.cost} E</span>
+        </div>
+      `).join('');
     }
-
-    // --- RENDER LOGIC ---
-    function updateElixirBar() {
-      const pct = (currentElixir / 10) * 100;
-      document.getElementById('elixir-bar').style.width = pct + '%';
-    }
-
-    function displayPlayedCard(card) {
-      const slot = document.getElementById('played-card-slot');
-      
-      // Pulls image directly from the /cards folder
-      document.getElementById('played-card-icon').src = `cards/${card.id}.png`;
-      document.getElementById('played-card-cost').innerText = card.cost;
-      
-      slot.classList.remove('hidden');
-      
-      // Reset animation
-      slot.style.animation = 'none';
-      slot.offsetHeight; // Trigger reflow
-      slot.style.animation = null;
-
-      setTimeout(() => {
-        slot.classList.add('hidden');
-      }, 1500);
-    }
-
-    function renderTextOptions(arr, callback) {
-      const grid = document.getElementById('options-grid');
-      grid.innerHTML = '';
-      grid.classList.remove('hidden');
-
-      arr.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.className = "py-3 bg-yellow-500 hover:bg-yellow-400 text-black text-xl font-bold rounded-xl border-b-4 border-yellow-700 active:border-b-0 active:translate-y-1 shadow-md transition-all";
-        btn.innerText = opt;
-        btn.onclick = () => callback(opt);
-        grid.appendChild(btn);
-      });
-    }
-
-    function renderImageOptions(arr, callback) {
-      const grid = document.getElementById('options-grid');
-      grid.innerHTML = '';
-      grid.classList.remove('hidden');
-
-      arr.forEach(card => {
-        const btn = document.createElement('button');
-        btn.className = "py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl border-b-4 border-slate-900 flex items-center justify-start px-2 gap-3 active:border-b-0 active:translate-y-1 transition-all overflow-hidden";
-        // Shows the uploaded image inside the button
-        btn.innerHTML = `<img src="cards/${card.id}.png" class="w-10 h-12 object-contain drop-shadow-md" /> <span class="text-sm font-bold tracking-wide">${card.name}</span>`;
-        btn.onclick = () => callback(card.id);
-        grid.appendChild(btn);
-      });
-    }
-
-    function showFeedback(isCorrect, subtitle) {
-      const overlay = document.getElementById('feedback-overlay');
-      const text = document.getElementById('feedback-text');
-      
-      text.innerText = isCorrect ? "CORRECT!" : "WRONG!";
-      text.className = isCorrect ? "text-4xl text-green-400 cr-text-stroke tracking-wide" : "text-4xl text-red-500 cr-text-stroke tracking-wide";
-      
-      document.getElementById('question-title').innerText = subtitle;
-      overlay.classList.remove('hidden');
-    }
-
-    startTrainer();
   </script>
 </body>
 </html>
