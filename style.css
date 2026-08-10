@@ -18,6 +18,13 @@
   --seq-correct-border: rgba(34,197,94,0.3);
   --seq-wrong-bg: rgba(239,68,68,0.05);
   --seq-wrong-border: rgba(239,68,68,0.3);
+  
+  /* Glassmorphism Variables - Dark */
+  --glass-bg: rgba(24, 24, 27, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --slot-bg: rgba(255, 255, 255, 0.03);
+  --slot-border: rgba(255, 255, 255, 0.05);
 }
 
 :root.light-mode {
@@ -40,6 +47,13 @@
   --seq-correct-border: rgba(22,163,74,0.4);
   --seq-wrong-bg: rgba(220,38,38,0.1);
   --seq-wrong-border: rgba(220,38,38,0.4);
+  
+  /* Glassmorphism Variables - Light */
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.08);
+  --slot-bg: rgba(0, 0, 0, 0.02);
+  --slot-border: rgba(0, 0, 0, 0.05);
 }
 
 * {
@@ -53,6 +67,11 @@
 
 body {
   background-color: var(--bg-main);
+  /* Added a very subtle gradient to body to make the glass blur pop */
+  background-image: 
+    radial-gradient(circle at 0% 0%, rgba(217, 70, 239, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(126, 34, 206, 0.03) 0%, transparent 50%);
+  background-attachment: fixed;
   color: var(--text-main);
   min-height: 100vh;
   overflow-x: hidden;
@@ -228,41 +247,52 @@ body {
 .search-bar:focus { border-color: var(--elixir-1); }
 .search-bar::placeholder { color: var(--text-dim); }
 
+/* === iOS Premium Glassmorphism Deck Slots === */
 .custom-deck-slots {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-bottom: 20px;
-  background: var(--bg-card);
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 20px;
+  border-radius: 24px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
 .custom-slot {
   aspect-ratio: 3/4;
-  background: var(--bg-card-light);
-  border: 1px dashed var(--border);
-  border-radius: 6px;
+  background: var(--slot-bg);
+  border: 1px solid var(--slot-border);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   position: relative;
   cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.custom-slot:active {
+  transform: scale(0.95);
 }
 
 .custom-slot img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 5px;
+  border-radius: 11px;
 }
 
 .empty-custom-slot {
-  color: var(--text-dim);
-  font-size: 24px;
-  font-weight: 300;
+  color: var(--text-main);
+  font-size: 28px;
+  font-weight: 200;
+  opacity: 0.3;
 }
 
 .sort-bar {
@@ -271,26 +301,34 @@ body {
   margin-bottom: 16px;
 }
 
+/* === Frosted Pill Sort Button === */
 .sort-btn {
-  background: #2196f3;
-  border: none;
-  color: #fff;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 700;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  transition: transform 0.2s;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-card);
 }
 
-.sort-btn:active { transform: scale(0.96); }
+.sort-btn:active { 
+  transform: scale(0.96); 
+  background: var(--slot-bg);
+}
 
 .sort-icon {
-  color: var(--success);
-  font-size: 14px;
+  color: var(--text-main);
+  font-size: 10px;
+  opacity: 0.6;
 }
 
 .card-pool-grid {
@@ -502,7 +540,7 @@ body {
   width: 100%;
 }
 
-/* === DARK MODE EMBOSSED SLOT === */
+/* Gameplay Dark Mode Slot */
 .card-slot {
   flex: 1 1 0;
   min-width: 0;
@@ -536,7 +574,7 @@ body {
   filter: drop-shadow(0px 1px 0px rgba(0,0,0,0.6));
 }
 
-/* === LIGHT MODE EMBOSSED SLOT === */
+/* Gameplay Light Mode Slot */
 .light-mode .card-slot {
   background: rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(0, 0, 0, 0.3);
@@ -580,7 +618,6 @@ body {
   display: block;
 }
 
-/* === NEW LAST PLAYED BLOCK === */
 .last-played-wrapper {
   background: var(--bg-card);
   padding: 10px 16px;
