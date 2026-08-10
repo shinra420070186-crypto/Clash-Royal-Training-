@@ -1,4 +1,3 @@
-// data.js - Holds all the cards and preset decks
 const RAW_CARDS = [
   ["Hog Rider", 4, "https://z-cdn-media.chatglm.cn/files/74b9c91b-ba26-4e27-8c6d-0f3f830de3b1.png?auth_key=1886185035-d87dc6dbcf4741b8b4ed1b0a4e4ebfc7-0-95dea5d311881ffb91c038d678552600"],
   ["Fireball", 4, "https://z-cdn-media.chatglm.cn/files/bd72d6c8-b52b-4f80-962b-c57957934fcf.png?auth_key=1886185035-cb219ef676da4c2490076a1ccfa41912-0-4fc68da38b44585ef28f901aa6fcb994"],
