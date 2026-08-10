@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Elixir & Cycle Master</title>
-  <!-- Link to our external stylesheet -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -51,16 +50,21 @@
   
   <!-- SCREEN: CUSTOM DECK BUILDER -->
   <div id="createDeckScreen" class="screen">
+    <!-- Pinned Top Corners -->
     <button class="btn-back top-left" id="btnBackCreate">← Back</button>
+    <button class="sort-btn top-right" id="sortElixirBtn">By Elixir <span id="sortIcon" class="sort-icon">▲</span></button>
+    
+    <!-- Fixed Masking Header -->
     <div class="header">
       <div class="title">Create Deck</div>
     </div>
+    
+    <!-- Fixed Deck Block -->
     <div class="custom-deck-slots" id="customDeckSlots"></div>
-    <button class="next-btn" id="btnStartCustom" style="display:none;margin-bottom:20px">Start Training</button>
-    <div class="sort-bar">
-      <button class="sort-btn" id="sortElixirBtn">By Elixir <span id="sortIcon" class="sort-icon">▲</span></button>
-    </div>
+    
+    <!-- Scrolling Cards Underneath -->
     <div class="card-pool-grid" id="cardPoolGrid"></div>
+    <button class="next-btn" id="btnStartCustom" style="display:none;margin-bottom:20px">Start Training</button>
   </div>
   
   <!-- SCREEN: PRESET DECKS -->
@@ -162,13 +166,10 @@
       <div class="hand-label">Opponent's Hand</div>
       <div class="cards-row" id="handRow"></div>
     </div>
-
-    <!-- NEW LAST PLAYED BLOCK -->
     <div class="last-played-wrapper" id="lastPlayedWrapper">
       <div class="last-played-label">LAST PLAYED</div>
       <div id="lastPlayedCardContainer"></div>
     </div>
-
     <div class="gameplay-area">
       <div class="focus-text">Watch the cards leave the hand</div>
     </div>
@@ -192,7 +193,6 @@
     <button class="btn-back" style="display:block;text-align:center;margin-top:10px;border:none;" id="btnGoMenu">Main Menu</button>
   </div>
   
-  <!-- Load data first, then app logic -->
   <script src="data.js"></script>
   <script src="app.js"></script>
 </body>
