@@ -28,7 +28,9 @@ const state = {
   customDeckNames: [],
   selectedPresetIndex: -1,
   sortDirection: 'asc',
-  nextPauseTime: 0,
+  // New AI Play Tracking
+  playsThisRound: 0,
+  targetPlays: 0,
   botTargetHold: 0
 };
 
@@ -324,7 +326,9 @@ function startGame() {
   state.streak = 0;
   state.lastPlayedCard = null;
   
-  state.nextPauseTime = performance.now() + 6000 + Math.random() * 8000;
+  // Set target to play 4 to 6 cards before pausing
+  state.playsThisRound = 0;
+  state.targetPlays = Math.floor(Math.random() * 3) + 4; 
   state.botTargetHold = Math.floor(Math.random() * 6) + 5;
   
   state.matchTime = 0;
@@ -471,17 +475,6 @@ function playOpponentCard(now) {
     return;
   }
   
-  if (now >= state.nextPauseTime) {
-    state.nextPauseTime = Infinity;
-    setTimeout(() => {
-      if (state.phase === 'playing') {
-        state.phase = 'question';
-        triggerQuestion();
-      }
-    }, 100);
-    return;
-  }
-  
   let canPlay = false;
   let affordable = [];
   
@@ -517,6 +510,20 @@ function playOpponentCard(now) {
     state.cyclePending = true;
     state.nextCycleTime = now + 350;
     state.cycleSlotIndex = playIdx;
+    
+    // Check if we hit the target number of plays
+    state.playsThisRound++;
+    
+    if (state.playsThisRound >= state.targetPlays) {
+      state.nextPlayTime = Infinity; // Stop playing
+      setTimeout(() => {
+        if (state.phase === 'playing') {
+          state.phase = 'question';
+          triggerQuestion();
+        }
+      }, 800 + Math.random() * 600); // Small pause so the user can process the last card
+      return;
+    }
     
     if (state.mode === 'hand') {
       state.nextPlayTime = now + 1500 + Math.random() * 2000;
@@ -829,7 +836,9 @@ function continueGame() {
   btnNext.style.display = 'none';
   actionTitle.innerText = 'Watch the opponent play...';
   
-  state.nextPauseTime = performance.now() + 6000 + Math.random() * 8000;
+  // Set new target for the next round (4 to 6 plays)
+  state.playsThisRound = 0;
+  state.targetPlays = Math.floor(Math.random() * 3) + 4; 
   state.botTargetHold = Math.floor(Math.random() * 6) + 5;
   
   state.phase = 'playing';
