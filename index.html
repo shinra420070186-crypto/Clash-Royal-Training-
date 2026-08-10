@@ -51,23 +51,25 @@
   
   <!-- SCREEN: CUSTOM DECK BUILDER -->
   <div id="createDeckScreen" class="screen">
-    <button class="btn-back top-left" id="btnBackCreate">← Back</button>
-    <div class="header">
+    <!-- Clean Fixed Top Bar -->
+    <div class="ios-top-bar">
+      <button class="btn-back" id="btnBackCreate">← Back</button>
       <div class="title">Create Deck</div>
-    </div>
-    <div class="custom-deck-slots" id="customDeckSlots"></div>
-    <button class="next-btn" id="btnStartCustom" style="display:none;margin-bottom:20px">Start Training</button>
-    <div class="sort-bar">
       <button class="sort-btn" id="sortElixirBtn">By Elixir <span id="sortIcon" class="sort-icon">▲</span></button>
     </div>
+    <!-- Fixed Glass Block -->
+    <div class="custom-deck-slots" id="customDeckSlots"></div>
+    <button class="next-btn" id="btnStartCustom" style="display:none;">Start Training</button>
+    <!-- Scrolling Cards -->
     <div class="card-pool-grid" id="cardPoolGrid"></div>
   </div>
   
   <!-- SCREEN: PRESET DECKS -->
   <div id="presetDeckScreen" class="screen">
-    <button class="btn-back top-left" id="btnBackPreset">← Back</button>
-    <div class="header">
+    <div class="ios-top-bar">
+      <button class="btn-back" id="btnBackPreset">← Back</button>
       <div class="title">Select Deck</div>
+      <div style="width: 70px;"></div> <!-- Spacer to balance flexbox -->
     </div>
     <input type="text" id="deckSearch" class="search-bar" placeholder="Search decks...">
     <div class="preset-deck-list" id="presetDeckList"></div>
@@ -75,9 +77,10 @@
   
   <!-- SCREEN: SELECT MODE -->
   <div id="menuScreen" class="screen">
-    <button class="btn-back top-left" id="btnChangeDeck">← Change Deck</button>
-    <div class="header">
+    <div class="ios-top-bar">
+      <button class="btn-back" id="btnChangeDeck">← Change</button>
       <div class="title" id="selectedDeckTitle">Deck</div>
+      <div style="width: 70px;"></div> <!-- Spacer -->
     </div>
     <div class="menu-logo">TRAINING MODE</div>
     <div class="menu-subtitle">Select your training focus</div>
@@ -140,9 +143,10 @@
   
   <!-- SCREEN: ARENA / GAMEPLAY -->
   <div id="gameScreen" class="screen">
-    <button class="btn-back top-left" id="btnExit">← Exit</button>
-    <div class="header">
+    <div class="ios-top-bar">
+      <button class="btn-back" id="btnExit">← Exit</button>
       <div class="title" id="modeTitle">Mode</div>
+      <div style="width: 70px;"></div> <!-- Spacer -->
     </div>
     <div class="stats-bar">
       <div class="stat-item">
@@ -163,7 +167,7 @@
       <div class="cards-row" id="handRow"></div>
     </div>
 
-    <!-- NEW LAST PLAYED BLOCK -->
+    <!-- LAST PLAYED BLOCK -->
     <div class="last-played-wrapper" id="lastPlayedWrapper">
       <div class="last-played-label">LAST PLAYED</div>
       <div id="lastPlayedCardContainer"></div>
