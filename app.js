@@ -41,6 +41,7 @@ let flowElixir = 0;
 let flowMultiplier = 1;
 let flowLastTime = 0;
 let flowAnimId = null;
+let lastElixirFloor = 0; // Tracks when to play sound
 
 const $ = id => document.getElementById(id);
 
@@ -155,6 +156,37 @@ btnRandomDeck.addEventListener('click', () => {
   menuScreen.classList.add('active');
 });
 
+// === SYNTHESIZED SFX ENGINE === 
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+function playElixirPop() {
+  if (!audioCtx) {
+    audioCtx = new AudioContext();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  
+  const osc = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  
+  // Soft, satisfying UI bloop
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+  
+  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+  gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.02);
+  gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+  
+  osc.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.2);
+}
+
 // Flow Visualizer Listeners
 btnElixirFlow.addEventListener('click', startFlowVisualizer);
 
@@ -178,7 +210,10 @@ function setFlowSpeed(mult) {
 }
 
 function startFlowVisualizer() {
+  if (!audioCtx) audioCtx = new AudioContext();
+  
   flowElixir = 0;
+  lastElixirFloor = 0;
   setFlowSpeed(1);
   deckSelectScreen.classList.remove('active');
   elixirFlowScreen.classList.add('active');
@@ -199,12 +234,22 @@ function flowLoop(now) {
   let addedElixir = delta / rate;
   flowElixir += addedElixir;
   
-  if (flowElixir >= 10) {
+  if (flowElixir >= 10.1) {
+    // Small buffer at 10 so it completes the visual before snapping back
     flowElixir = 0; 
+    lastElixirFloor = 0;
+  } else {
+    let currentFloor = Math.floor(flowElixir);
+    if (currentFloor > lastElixirFloor && currentFloor <= 10) {
+      playElixirPop();
+      lastElixirFloor = currentFloor;
+      $('flowElixirText').classList.add('pulse');
+      setTimeout(() => $('flowElixirText').classList.remove('pulse'), 150);
+    }
   }
   
-  $('flowElixirText').innerText = Math.floor(flowElixir);
-  $('flowElixirFill').style.width = (flowElixir * 10) + '%';
+  $('flowElixirText').innerText = Math.min(10, Math.floor(flowElixir));
+  $('flowElixirFill').style.width = (Math.min(10, flowElixir) * 10) + '%';
   
   flowAnimId = requestAnimationFrame(flowLoop);
 }
@@ -257,28 +302,6 @@ btnStartCustom.addEventListener('click', () => {
   state.activeDeck = state.customDeckNames.map(name => MASTER_DECK.find(c => c.name === name));
   $('selectedDeckTitle').innerText = "Custom Deck";
   createDeckScreen.classList.remove('active');
-  menuScreen.classList.add('active');
-});
-
-deckPreviewModal.addEventListener('click', (e) => {
-  if (e.target === deckPreviewModal) {
-    deckPreviewModal.classList.remove('active');
-  }
-});
-
-difficultyModal.addEventListener('click', (e) => {
-  if (e.target === difficultyModal) {
-    difficultyModal.classList.remove('active');
-  }
-});
-
-btnStartPreview.addEventListener('click', () => {
-  deckPreviewModal.classList.remove('active');
-  state.deckMode = 'preset';
-  const selectedDeck = PRESET_DECKS[state.selectedPresetIndex];
-  state.activeDeck = selectedDeck.cards.map(name => MASTER_DECK.find(c => c.name === name));
-  $('selectedDeckTitle').innerText = selectedDeck.name;
-  presetDeckScreen.classList.remove('active');
   menuScreen.classList.add('active');
 });
 
