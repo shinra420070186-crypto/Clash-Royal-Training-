@@ -19,6 +19,7 @@
   --seq-wrong-bg: rgba(239,68,68,0.05);
   --seq-wrong-border: rgba(239,68,68,0.3);
   
+  /* Premium Glassmorphism Variables - Dark Mode */
   --glass-bg: rgba(24, 24, 27, 0.75);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
@@ -45,6 +46,7 @@
   --seq-wrong-bg: rgba(220,38,38,0.1);
   --seq-wrong-border: rgba(220,38,38,0.4);
   
+  /* Premium Glassmorphism Variables - Light Mode */
   --glass-bg: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(255, 255, 255, 0.6);
   --glass-shadow: 0 12px 30px rgba(31, 38, 135, 0.1);
@@ -87,7 +89,8 @@ body {
   max-width: 600px;
   min-height: 100vh;
   flex-direction: column;
-  padding: 120px 20px 24px 20px;
+  /* Reduced padding since top bar is thinner now */
+  padding: 85px 20px 24px 20px;
   position: relative;
 }
 
@@ -98,18 +101,19 @@ body {
 }
 
 #createDeckScreen {
-  padding-top: 100px;
+  padding-top: 65px; /* Matches the new thinner top bar */
 }
 
+/* === THINNER UNIFIED IOS TOP GLASS BAR === */
 .ios-top-bar {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100px;
+  height: 65px; /* Reduced from 100px for a sleeker look */
   display: flex;
-  align-items: flex-end; 
-  padding: 0 20px 16px 20px;
+  align-items: center; /* Perfectly centers elements vertically */
+  padding: 0 16px;
   background: var(--glass-bg);
   backdrop-filter: blur(24px) saturate(150%);
   -webkit-backdrop-filter: blur(24px) saturate(150%);
@@ -121,8 +125,8 @@ body {
 .ios-top-bar .title {
   position: absolute;
   left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%);
+  top: 50%;
+  transform: translate(-50%, -50%);
   font-size: 16px;
   font-weight: 700;
   text-transform: uppercase;
@@ -133,14 +137,16 @@ body {
 
 .ios-top-bar .left-action {
   position: absolute;
-  left: 20px;
-  bottom: 16px;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .ios-top-bar .right-action {
   position: absolute;
-  right: 20px;
-  bottom: 16px;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .btn-back {
@@ -157,7 +163,7 @@ body {
 }
 
 .btn-back:active { 
-  transform: scale(0.96); 
+  transform: scale(0.96) translateY(-50%); /* Preserve absolute positioning centering */
   background: var(--bg-card-light); 
 }
 
@@ -178,7 +184,7 @@ body {
 }
 
 .sort-btn:active { 
-  transform: scale(0.96); 
+  transform: scale(0.96) translateY(-50%);
   background: var(--bg-card-light);
 }
 
@@ -246,9 +252,10 @@ body {
   transform: translateX(100%);
 }
 
+/* === STICKY DECK SLOTS CONTAINER === */
 .custom-deck-slots {
   position: sticky;
-  top: 100px;
+  top: 65px; /* Matches the new 65px height of the top bar perfectly */
   z-index: 90;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -305,11 +312,13 @@ body {
   opacity: 0.3;
 }
 
+/* === CARD POOL GRID === */
 .card-pool-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
   gap: 12px;
   padding: 4px;
+  padding-top: 260px; /* Reduced to match the new thinner top elements */
   padding-bottom: 120px;
 }
 
