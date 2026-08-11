@@ -93,9 +93,13 @@ body {
 
 .screen.active { display: flex; }
 
-#deckSelectScreen { padding-top: 60px; }
-#createDeckScreen { padding-top: 65px; }
-#elixirFlowScreen { padding-top: 85px; }
+#deckSelectScreen {
+  padding-top: 60px; 
+}
+
+#createDeckScreen {
+  padding-top: 65px; 
+}
 
 .ios-top-bar {
   position: fixed;
@@ -217,7 +221,9 @@ body {
   transition: color 0.3s;
 }
 
-.toggle-btn.active { color: var(--text-main); }
+.toggle-btn.active {
+  color: var(--text-main);
+}
 
 .toggle-bg {
   position: absolute;
@@ -238,7 +244,9 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-.match-type-toggle.ranked .toggle-bg { transform: translateX(100%); }
+.match-type-toggle.ranked .toggle-bg {
+  transform: translateX(100%);
+}
 
 /* === NEW 3-WAY SPEED TOGGLE === */
 .speed-toggle {
@@ -279,16 +287,16 @@ body {
 .speed-toggle.x2 .toggle-bg { transform: translateX(100%); }
 .speed-toggle.x3 .toggle-bg { transform: translateX(200%); }
 
-/* === CLEANER FLOW VISUALIZER BOX === */
+/* === FLOW VISUALIZER BOX === */
 .flow-visualizer-box {
   width: 100%;
-  max-width: 360px;
+  max-width: 400px;
   background: var(--glass-bg);
   backdrop-filter: blur(24px) saturate(150%);
   -webkit-backdrop-filter: blur(24px) saturate(150%);
   border: 1px solid var(--glass-border);
-  border-radius: 32px;
-  padding: 50px 30px;
+  border-radius: 24px;
+  padding: 40px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -297,58 +305,48 @@ body {
 
 .flow-drop-container {
   position: relative;
-  width: 100px;
-  height: 120px;
-  margin-bottom: 40px;
+  width: 90px;
+  height: 106px;
+  margin-bottom: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 12px 24px rgba(217, 70, 239, 0.4));
-  transition: transform 0.1s ease;
+  filter: drop-shadow(0 8px 16px rgba(217, 70, 239, 0.3));
 }
 
-.flow-drop-container svg { width: 100%; height: 100%; }
+.flow-drop-container svg {
+  width: 100%;
+  height: 100%;
+}
 
 .flow-count {
   position: absolute;
-  font-size: 46px;
+  font-size: 40px;
   font-weight: 900;
   color: #fff;
   top: 55%;
   left: 50%;
   transform: translate(-50%, -50%);
-  text-shadow: 0 4px 12px rgba(0,0,0,0.5);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  letter-spacing: -2px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
 }
-
-/* Pulse animation for the text */
-@keyframes countPulse {
-  0% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -50%) scale(1.3); }
-  100% { transform: translate(-50%, -50%) scale(1); }
-}
-.flow-count.pulse { animation: countPulse 0.15s ease-out; }
 
 .flow-bar-container {
   width: 100%;
-  height: 20px;
+  height: 24px;
   background: var(--elixir-empty);
-  border-radius: 10px;
+  border-radius: 12px;
   position: relative;
   border: 1px solid var(--border);
   overflow: hidden;
-  box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
 }
-.light-mode .flow-bar-container { box-shadow: inset 0 2px 6px rgba(0,0,0,0.1); }
 
 .flow-bar-fill {
   height: 100%;
   background: linear-gradient(90deg, var(--elixir-2), var(--elixir-1));
   width: 0%;
   position: relative;
-  box-shadow: inset 0 2px 4px rgba(255,255,255,0.4);
-  transition: width 0.05s linear; /* extremely smooth filling */
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
 }
 
 .flow-drops {
@@ -357,9 +355,8 @@ body {
   display: flex; pointer-events: none;
 }
 .flow-drops .drop {
-  flex: 1; border-right: 2px solid rgba(0,0,0,0.6);
+  flex: 1; border-right: 1px solid rgba(0,0,0,0.5);
 }
-.light-mode .flow-drops .drop { border-right: 2px solid rgba(0,0,0,0.2); }
 .flow-drops .drop:last-child { border: none; }
 
 
@@ -404,7 +401,9 @@ body {
   box-shadow: inset 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.custom-slot:active { transform: scale(0.95); }
+.custom-slot:active {
+  transform: scale(0.95);
+}
 
 .custom-slot img {
   width: 100%;
