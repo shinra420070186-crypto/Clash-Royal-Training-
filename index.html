@@ -17,7 +17,7 @@
 </head>
 <body>
   
-  <!-- SCREEN: DECK SELECTION (Main Menu 1) -->
+  <!-- SCREEN: DECK SELECTION -->
   <div id="deckSelectScreen" class="screen active">
     <div class="menu-top-bar">
       <label class="theme-switch">
@@ -67,7 +67,6 @@
     
     <div class="custom-deck-slots" id="customDeckSlots"></div>
     <button class="next-btn" id="btnStartCustom" style="display:none;">Start Training</button>
-    
     <div class="card-pool-grid" id="cardPoolGrid"></div>
   </div>
   
@@ -90,7 +89,15 @@
       <div style="width: 70px;"></div>
     </div>
     <div class="menu-logo">TRAINING MODE</div>
-    <div class="menu-subtitle">Select your training focus</div>
+    <div class="menu-subtitle" style="margin-bottom: 24px;">Select your training focus</div>
+    
+    <!-- NEW: MATCH TYPE TOGGLE -->
+    <div class="match-type-toggle" id="matchTypeToggle">
+      <div class="toggle-bg"></div>
+      <button class="toggle-btn active" id="btnTypeClassic">Classic</button>
+      <button class="toggle-btn" id="btnTypeRanked">Ranked (Sudden Death)</button>
+    </div>
+
     <div class="high-score-banner" id="highScoreBanner" style="display:none;">
       🏆 High Score: <span id="hsValue">0</span>
     </div>
