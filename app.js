@@ -1,6 +1,9 @@
 const state = {
   mode: null,
   difficulty: null,
+  matchType: 'classic', // new: 'classic' or 'ranked'
+  isGameOver: false,
+  isFirstRound: true,
   deckMode: null,
   activeDeck: [],
   deck: [],
@@ -156,6 +159,21 @@ btnBackPreset.addEventListener('click', () => {
 btnChangeDeck.addEventListener('click', () => {
   menuScreen.classList.remove('active');
   deckSelectScreen.classList.add('active');
+});
+
+// Match Type Toggle Listeners
+$('btnTypeClassic').addEventListener('click', () => {
+  state.matchType = 'classic';
+  $('btnTypeClassic').classList.add('active');
+  $('btnTypeRanked').classList.remove('active');
+  $('matchTypeToggle').classList.remove('ranked');
+});
+
+$('btnTypeRanked').addEventListener('click', () => {
+  state.matchType = 'ranked';
+  $('btnTypeRanked').classList.add('active');
+  $('btnTypeClassic').classList.remove('active');
+  $('matchTypeToggle').classList.add('ranked');
 });
 
 deckSearch.addEventListener('input', (e) => renderPresetDecks(e.target.value));
@@ -327,8 +345,18 @@ function startGame() {
   state.streak = 0;
   state.lastPlayedCard = null;
   
+  state.isGameOver = false;
+  state.isFirstRound = true;
   state.playsThisRound = 0;
-  state.targetPlays = Math.floor(Math.random() * 3) + 4; 
+  
+  // Hand Tracking Mod target plays rule:
+  // First round 4-8 cards, then 2-8
+  if (state.mode === 'hand') {
+    state.targetPlays = Math.floor(Math.random() * 5) + 4; // 4 to 8
+  } else {
+    state.targetPlays = Math.floor(Math.random() * 3) + 4; // 4 to 6
+  }
+  
   state.botTargetHold = Math.floor(Math.random() * 5) + 4;
   
   state.matchTime = 0;
@@ -360,6 +388,7 @@ function startGame() {
   seqResults.innerHTML = '';
   seqResults.style.display = 'none';
   btnNext.style.display = 'none';
+  btnNext.innerText = 'Continue';
   
   lastPlayedWrapper.classList.remove('active');
   lastPlayedCardContainer.innerHTML = '';
@@ -800,6 +829,7 @@ function submitSequenceAnswer() {
     if (index < correctSequence.length - 1) html += `<span class="seq-arrow">→</span>`;
   });
   html += `</div></div>`;
+  
   if (!isCorrect) {
     html += `<div class="seq-result-row wrong"><div class="seq-result-cards">`;
     userSequence.forEach((card, index) => {
@@ -808,16 +838,27 @@ function submitSequenceAnswer() {
     });
     html += `</div></div>`;
   }
+  
   seqResults.innerHTML = html;
   seqResults.style.display = 'block';
+  
   if (isCorrect) {
     state.score += 10 + (state.streak * 2);
     state.streak++;
     actionTitle.innerText = 'Perfect! You got the order right.';
+    btnNext.innerText = 'Continue';
   } else {
     state.streak = 0;
-    actionTitle.innerText = 'Wrong order! Check the comparison below.';
+    if (state.matchType === 'ranked') {
+      state.isGameOver = true;
+      actionTitle.innerHTML = '<span style="color:var(--error);">Wrong order! Sudden Death Game Over.</span>';
+      btnNext.innerText = 'End Match';
+    } else {
+      actionTitle.innerText = 'Wrong order! Check the comparison below.';
+      btnNext.innerText = 'Continue';
+    }
   }
+  
   if (state.mode === 'combined') revealElixirBar();
   btnNext.style.display = 'block';
   updateStatsUI();
@@ -826,12 +867,15 @@ function submitSequenceAnswer() {
 function handleAnswer(selected, correctAnswers, btn) {
   const buttons = document.querySelectorAll('.choice-btn, .choice-btn-img');
   buttons.forEach(b => b.style.pointerEvents = 'none');
+  
   let isCorrect = correctAnswers.has(selected);
+  
   if (isCorrect) {
     btn.classList.add('correct');
     state.score += 10 + (state.streak * 2);
     state.streak++;
     actionTitle.innerText = 'Correct!';
+    btnNext.innerText = 'Continue';
   } else {
     btn.classList.add('wrong');
     state.streak = 0;
@@ -839,17 +883,32 @@ function handleAnswer(selected, correctAnswers, btn) {
       let val = isNaN(Number(b.getAttribute('data-value'))) ? b.getAttribute('data-value') : Number(b.getAttribute('data-value'));
       if (correctAnswers.has(val)) b.classList.add('correct');
     });
-    actionTitle.innerText = 'Wrong! Correct answer highlighted.';
+    
+    if (state.matchType === 'ranked') {
+      state.isGameOver = true;
+      actionTitle.innerHTML = '<span style="color:var(--error);">Wrong! Sudden Death Game Over.</span>';
+      btnNext.innerText = 'End Match';
+    } else {
+      actionTitle.innerText = 'Wrong! Correct answer highlighted.';
+      btnNext.innerText = 'Continue';
+    }
   }
+  
   if (state.mode === 'elixir' || state.mode === 'combined') revealElixirBar();
   btnNext.style.display = 'block';
   updateStatsUI();
 }
 
 function continueGame() {
+  if (state.isGameOver) {
+    endGame();
+    return;
+  }
+
   if (state.mode === 'elixir' || state.mode === 'combined') {
     elixirWrapper.innerHTML = `<div class="elixir-hidden-placeholder">Elixir is Hidden! Opponent starts at 10. Track mentally.</div>`;
   }
+  
   choicesGrid.style.display = 'none';
   choicesGridSeq.style.display = 'none';
   seqResults.style.display = 'none';
@@ -859,8 +918,15 @@ function continueGame() {
   lastPlayedWrapper.classList.remove('active');
   lastPlayedCardContainer.innerHTML = '';
 
+  state.isFirstRound = false;
   state.playsThisRound = 0;
-  state.targetPlays = Math.floor(Math.random() * 3) + 4; 
+  
+  if (state.mode === 'hand') {
+    state.targetPlays = Math.floor(Math.random() * 7) + 2; // Next rounds: 2 to 8 plays
+  } else {
+    state.targetPlays = Math.floor(Math.random() * 3) + 4; // 4 to 6
+  }
+  
   state.botTargetHold = Math.floor(Math.random() * 5) + 4;
   
   state.phase = 'playing';
