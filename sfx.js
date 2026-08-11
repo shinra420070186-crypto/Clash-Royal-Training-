@@ -1,4 +1,4 @@
-// sfx.js - White Noise Percussive UI Click
+// sfx.js - Premium Layered UI Pop
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
 
@@ -11,40 +11,52 @@ function initAudio() {
   }
 }
 
-// Generates a natural, non-tonal "tick" using a filtered noise burst
+// Plays a satisfying, modern UI "Tap + Pop"
 function playElixirTick() {
   initAudio();
-  
   const t = audioCtx.currentTime;
+
+  // ==========================================
+  // LAYER 1: The "Body" (Warm, satisfying pop)
+  // ==========================================
+  const bodyOsc = audioCtx.createOscillator();
+  const bodyGain = audioCtx.createGain();
   
-  // 1. Create a tiny 50-millisecond buffer of pure white noise (static)
-  const bufferSize = audioCtx.sampleRate * 0.05; 
-  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) {
-    data[i] = Math.random() * 2 - 1; 
-  }
+  bodyOsc.type = 'sine';
+  // Starts high and drops instantly to create a water-like "bloop"
+  bodyOsc.frequency.setValueAtTime(800, t);
+  bodyOsc.frequency.exponentialRampToValueAtTime(150, t + 0.07);
   
-  const noiseSource = audioCtx.createBufferSource();
-  noiseSource.buffer = buffer;
+  // Smooth volume envelope for the body
+  bodyGain.gain.setValueAtTime(0, t);
+  bodyGain.gain.linearRampToValueAtTime(0.6, t + 0.005);
+  bodyGain.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
   
-  // 2. Pass the noise through a filter to turn "hiss" into a sharp "tap"
-  const filter = audioCtx.createBiquadFilter();
-  filter.type = 'bandpass';
-  filter.frequency.setValueAtTime(2500, t); // Centers the sound to mimic a wooden/plastic click
-  filter.Q.setValueAtTime(1.5, t); 
+  bodyOsc.connect(bodyGain);
+  bodyGain.connect(audioCtx.destination);
   
-  // 3. Shape the volume so it vanishes almost instantly
-  const gainNode = audioCtx.createGain();
-  gainNode.gain.setValueAtTime(0, t);
-  gainNode.gain.linearRampToValueAtTime(0.6, t + 0.001); // Instant tap
-  gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.02); // Silence after 20ms
+  bodyOsc.start(t);
+  bodyOsc.stop(t + 0.08);
+
+  // ==========================================
+  // LAYER 2: The "Click" (Sharp tactile snap)
+  // ==========================================
+  const clickOsc = audioCtx.createOscillator();
+  const clickGain = audioCtx.createGain();
   
-  // Connect the chain
-  noiseSource.connect(filter);
-  filter.connect(gainNode);
-  gainNode.connect(audioCtx.destination);
+  clickOsc.type = 'square'; // Square wave for a harsh, physical snap
+  // Drops extremely fast to act like a percussion hit
+  clickOsc.frequency.setValueAtTime(2000, t);
+  clickOsc.frequency.exponentialRampToValueAtTime(100, t + 0.02);
   
-  // Play the tick
-  noiseSource.start(t);
+  // Extremely short volume envelope (only 20 milliseconds long)
+  clickGain.gain.setValueAtTime(0, t);
+  clickGain.gain.linearRampToValueAtTime(0.15, t + 0.001); // Keeps the click volume low so it doesn't overpower the pop
+  clickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+  
+  clickOsc.connect(clickGain);
+  clickGain.connect(audioCtx.destination);
+  
+  clickOsc.start(t);
+  clickOsc.stop(t + 0.03);
 }
