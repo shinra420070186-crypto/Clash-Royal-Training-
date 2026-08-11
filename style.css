@@ -19,7 +19,6 @@
   --seq-wrong-bg: rgba(239,68,68,0.05);
   --seq-wrong-border: rgba(239,68,68,0.3);
   
-  /* Premium Glassmorphism Variables - Dark Mode */
   --glass-bg: rgba(24, 24, 27, 0.75);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
@@ -46,7 +45,6 @@
   --seq-wrong-bg: rgba(220,38,38,0.1);
   --seq-wrong-border: rgba(220,38,38,0.4);
   
-  /* Premium Glassmorphism Variables - Light Mode */
   --glass-bg: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(255, 255, 255, 0.6);
   --glass-shadow: 0 12px 30px rgba(31, 38, 135, 0.1);
@@ -89,24 +87,20 @@ body {
   max-width: 600px;
   min-height: 100vh;
   flex-direction: column;
-  /* Leaves room for the massive fixed top bar on all generic screens */
   padding: 120px 20px 24px 20px;
   position: relative;
 }
 
 .screen.active { display: flex; }
 
-/* The home screen has no fixed bar, reset its padding */
 #deckSelectScreen {
   padding-top: 60px; 
 }
 
-/* The Create Deck screen connects perfectly to the 100px fixed bar */
 #createDeckScreen {
   padding-top: 100px;
 }
 
-/* === UNIFIED IOS TOP GLASS BAR === */
 .ios-top-bar {
   position: fixed;
   top: 0;
@@ -194,22 +188,79 @@ body {
   opacity: 0.6;
 }
 
-/* === STICKY FROSTED DECK SLOTS (Seamless connection to top bar) === */
+/* === MATCH TYPE TOGGLE === */
+.match-type-toggle {
+  display: flex;
+  position: relative;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  margin-bottom: 32px;
+  padding: 4px;
+  width: 100%;
+  box-shadow: var(--glass-shadow);
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 12px 10px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dim);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+  transition: color 0.3s;
+}
+
+.toggle-btn.active {
+  color: var(--text-main);
+}
+
+.toggle-bg {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 8px;
+  z-index: 1;
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.light-mode .toggle-bg {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.match-type-toggle.ranked .toggle-bg {
+  transform: translateX(100%);
+}
+
 .custom-deck-slots {
   position: sticky;
-  top: 100px; /* Aligns perfectly with the 100px top bar */
+  top: 100px;
   z-index: 90;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   margin-bottom: 24px;
   padding: 16px;
-  border-radius: 0 0 24px 24px; /* Flat top, rounded bottom */
+  border-radius: 0 0 24px 24px;
   background: var(--glass-bg);
   backdrop-filter: blur(24px) saturate(150%);
   -webkit-backdrop-filter: blur(24px) saturate(150%);
   border: 1px solid var(--glass-border);
-  border-top: none; /* Merges seamlessly */
+  border-top: none;
   box-shadow: var(--glass-shadow);
 }
 
@@ -254,14 +305,12 @@ body {
   opacity: 0.3;
 }
 
-/* === SCROLLING CARD POOL GRID === */
-/* Since it sits below the sticky block in the DOM, it just flows naturally under it when scrolled! */
 .card-pool-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
   gap: 12px;
   padding: 4px;
-  padding-bottom: 120px; /* Safe space at the bottom for floating buttons */
+  padding-bottom: 120px;
 }
 
 .card-pool-item {
@@ -292,7 +341,6 @@ body {
   transform: scale(0.95);
 }
 
-/* === GENERAL UI ELEMENTS === */
 .stats-bar {
   display: flex;
   justify-content: space-between;
@@ -584,7 +632,6 @@ body {
   width: 100%;
 }
 
-/* Gameplay Dark Mode Slot */
 .cards-row .card-slot {
   flex: 1 1 0;
   min-width: 0;
@@ -618,7 +665,6 @@ body {
   filter: drop-shadow(0px 1px 0px rgba(0,0,0,0.6));
 }
 
-/* Gameplay Light Mode Slot */
 .light-mode .cards-row .card-slot {
   background: rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(0, 0, 0, 0.3);
@@ -1025,7 +1071,6 @@ body {
   transition: transform 0.2s ease;
 }
 
-/* Floating iOS "Start Training" Button */
 #btnStartCustom {
   position: fixed;
   bottom: 30px;
