@@ -1,7 +1,7 @@
 const state = {
   mode: null,
   difficulty: null,
-  matchType: 'classic', // new: 'classic' or 'ranked'
+  matchType: 'classic',
   isGameOver: false,
   isFirstRound: true,
   deckMode: null,
@@ -36,6 +36,12 @@ const state = {
   botTargetHold: 0
 };
 
+// Flow Visualizer variables
+let flowElixir = 0;
+let flowMultiplier = 1;
+let flowLastTime = 0;
+let flowAnimId = null;
+
 const $ = id => document.getElementById(id);
 
 const deckSelectScreen = $('deckSelectScreen'),
@@ -44,14 +50,17 @@ const deckSelectScreen = $('deckSelectScreen'),
       menuScreen = $('menuScreen'),
       gameScreen = $('gameScreen'),
       gameOverScreen = $('gameOverScreen'),
+      elixirFlowScreen = $('elixirFlowScreen'),
       difficultyModal = $('difficultyModal'),
       deckPreviewModal = $('deckPreviewModal');
       
 const btnCreateDeck = $('btnCreateDeck'),
       btnSelectPreset = $('btnSelectPreset'),
       btnRandomDeck = $('btnRandomDeck'),
+      btnElixirFlow = $('btnElixirFlow'),
       btnBackCreate = $('btnBackCreate'),
       btnBackPreset = $('btnBackPreset'),
+      btnBackFlow = $('btnBackFlow'),
       btnStartCustom = $('btnStartCustom'),
       btnChangeDeck = $('btnChangeDeck');
       
@@ -145,6 +154,60 @@ btnRandomDeck.addEventListener('click', () => {
   deckSelectScreen.classList.remove('active');
   menuScreen.classList.add('active');
 });
+
+// Flow Visualizer Listeners
+btnElixirFlow.addEventListener('click', startFlowVisualizer);
+
+btnBackFlow.addEventListener('click', () => {
+  if(flowAnimId) cancelAnimationFrame(flowAnimId);
+  elixirFlowScreen.classList.remove('active');
+  deckSelectScreen.classList.add('active');
+});
+
+$('btnSpeed1').addEventListener('click', () => { setFlowSpeed(1); });
+$('btnSpeed2').addEventListener('click', () => { setFlowSpeed(2); });
+$('btnSpeed3').addEventListener('click', () => { setFlowSpeed(3); });
+
+function setFlowSpeed(mult) {
+  flowMultiplier = mult;
+  $('btnSpeed1').classList.remove('active');
+  $('btnSpeed2').classList.remove('active');
+  $('btnSpeed3').classList.remove('active');
+  $(`btnSpeed${mult}`).classList.add('active');
+  $('speedToggle').className = `speed-toggle x${mult}`;
+}
+
+function startFlowVisualizer() {
+  flowElixir = 0;
+  setFlowSpeed(1);
+  deckSelectScreen.classList.remove('active');
+  elixirFlowScreen.classList.add('active');
+  
+  flowLastTime = performance.now();
+  if(flowAnimId) cancelAnimationFrame(flowAnimId);
+  flowAnimId = requestAnimationFrame(flowLoop);
+}
+
+function flowLoop(now) {
+  let delta = now - flowLastTime;
+  flowLastTime = now;
+  
+  let rate = 2800; 
+  if (flowMultiplier === 2) rate = 1400;
+  if (flowMultiplier === 3) rate = 933;
+  
+  let addedElixir = delta / rate;
+  flowElixir += addedElixir;
+  
+  if (flowElixir >= 10) {
+    flowElixir = 0; 
+  }
+  
+  $('flowElixirText').innerText = Math.floor(flowElixir);
+  $('flowElixirFill').style.width = (flowElixir * 10) + '%';
+  
+  flowAnimId = requestAnimationFrame(flowLoop);
+}
 
 btnBackCreate.addEventListener('click', () => {
   createDeckScreen.classList.remove('active');
@@ -349,12 +412,10 @@ function startGame() {
   state.isFirstRound = true;
   state.playsThisRound = 0;
   
-  // Hand Tracking Mod target plays rule:
-  // First round 4-8 cards, then 2-8
   if (state.mode === 'hand') {
-    state.targetPlays = Math.floor(Math.random() * 5) + 4; // 4 to 8
+    state.targetPlays = Math.floor(Math.random() * 5) + 4; 
   } else {
-    state.targetPlays = Math.floor(Math.random() * 3) + 4; // 4 to 6
+    state.targetPlays = Math.floor(Math.random() * 3) + 4; 
   }
   
   state.botTargetHold = Math.floor(Math.random() * 5) + 4;
@@ -922,9 +983,9 @@ function continueGame() {
   state.playsThisRound = 0;
   
   if (state.mode === 'hand') {
-    state.targetPlays = Math.floor(Math.random() * 7) + 2; // Next rounds: 2 to 8 plays
+    state.targetPlays = Math.floor(Math.random() * 7) + 2; 
   } else {
-    state.targetPlays = Math.floor(Math.random() * 3) + 4; // 4 to 6
+    state.targetPlays = Math.floor(Math.random() * 3) + 4; 
   }
   
   state.botTargetHold = Math.floor(Math.random() * 5) + 4;
