@@ -156,17 +156,18 @@ btnRandomDeck.addEventListener('click', () => {
   menuScreen.classList.add('active');
 });
 
-// === SYNTHESIZED SFX ENGINE === 
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-let audioCtx;
+// === REAL SFX ENGINE === 
+// Using a real, high-quality water drop sound instead of a synth beep
+const elixirPop = new Audio('https://actions.google.com/sounds/v1/water/water_drop.ogg');
+elixirPop.volume = 0.6; // Adjust volume from 0.0 to 1.0
 
 function playElixirPop() {
-  if (!audioCtx) {
-    audioCtx = new AudioContext();
-  }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
+  elixirPop.currentTime = 0; // Instantly resets the sound so it can play fast multiple times
+  
+  // Play the sound (catch prevents browser errors if the user hasn't tapped the screen yet)
+  elixirPop.play().catch(err => console.log('Waiting for user interaction to play sound...'));
+}
+
   
   const osc = audioCtx.createOscillator();
   const gainNode = audioCtx.createGain();
