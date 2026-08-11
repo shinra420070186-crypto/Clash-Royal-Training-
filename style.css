@@ -19,7 +19,6 @@
   --seq-wrong-bg: rgba(239,68,68,0.05);
   --seq-wrong-border: rgba(239,68,68,0.3);
   
-  /* Premium Glassmorphism Variables - Dark Mode */
   --glass-bg: rgba(24, 24, 27, 0.75);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
@@ -46,7 +45,6 @@
   --seq-wrong-bg: rgba(220,38,38,0.1);
   --seq-wrong-border: rgba(220,38,38,0.4);
   
-  /* Premium Glassmorphism Variables - Light Mode */
   --glass-bg: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(255, 255, 255, 0.6);
   --glass-shadow: 0 12px 30px rgba(31, 38, 135, 0.1);
@@ -89,7 +87,6 @@ body {
   max-width: 600px;
   min-height: 100vh;
   flex-direction: column;
-  /* Reduced padding since top bar is thinner now */
   padding: 85px 20px 24px 20px;
   position: relative;
 }
@@ -101,18 +98,17 @@ body {
 }
 
 #createDeckScreen {
-  padding-top: 65px; /* Matches the new thinner top bar */
+  padding-top: 65px; 
 }
 
-/* === THINNER UNIFIED IOS TOP GLASS BAR === */
 .ios-top-bar {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 65px; /* Reduced from 100px for a sleeker look */
+  height: 65px; 
   display: flex;
-  align-items: center; /* Perfectly centers elements vertically */
+  align-items: center; 
   padding: 0 16px;
   background: var(--glass-bg);
   backdrop-filter: blur(24px) saturate(150%);
@@ -163,7 +159,7 @@ body {
 }
 
 .btn-back:active { 
-  transform: scale(0.96) translateY(-50%); /* Preserve absolute positioning centering */
+  transform: scale(0.96) translateY(-50%); 
   background: var(--bg-card-light); 
 }
 
@@ -252,10 +248,121 @@ body {
   transform: translateX(100%);
 }
 
-/* === STICKY DECK SLOTS CONTAINER === */
+/* === NEW 3-WAY SPEED TOGGLE === */
+.speed-toggle {
+  display: flex;
+  position: relative;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 4px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--glass-shadow);
+  margin-top: 40px;
+}
+
+.speed-toggle .toggle-bg {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(33.333% - 2.66px); 
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 8px;
+  z-index: 1;
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.light-mode .speed-toggle .toggle-bg {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.speed-toggle.x1 .toggle-bg { transform: translateX(0); }
+.speed-toggle.x2 .toggle-bg { transform: translateX(100%); }
+.speed-toggle.x3 .toggle-bg { transform: translateX(200%); }
+
+/* === FLOW VISUALIZER BOX === */
+.flow-visualizer-box {
+  width: 100%;
+  max-width: 400px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: var(--glass-shadow);
+}
+
+.flow-drop-container {
+  position: relative;
+  width: 90px;
+  height: 106px;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 8px 16px rgba(217, 70, 239, 0.3));
+}
+
+.flow-drop-container svg {
+  width: 100%;
+  height: 100%;
+}
+
+.flow-count {
+  position: absolute;
+  font-size: 40px;
+  font-weight: 900;
+  color: #fff;
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.flow-bar-container {
+  width: 100%;
+  height: 24px;
+  background: var(--elixir-empty);
+  border-radius: 12px;
+  position: relative;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.flow-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--elixir-2), var(--elixir-1));
+  width: 0%;
+  position: relative;
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);
+}
+
+.flow-drops {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  display: flex; pointer-events: none;
+}
+.flow-drops .drop {
+  flex: 1; border-right: 1px solid rgba(0,0,0,0.5);
+}
+.flow-drops .drop:last-child { border: none; }
+
+
 .custom-deck-slots {
   position: sticky;
-  top: 65px; /* Matches the new 65px height of the top bar perfectly */
+  top: 65px; 
   z-index: 90;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -312,13 +419,12 @@ body {
   opacity: 0.3;
 }
 
-/* === CARD POOL GRID === */
 .card-pool-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
   gap: 12px;
   padding: 4px;
-  padding-top: 260px; /* Reduced to match the new thinner top elements */
+  padding-top: 260px; 
   padding-bottom: 120px;
 }
 
