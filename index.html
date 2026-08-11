@@ -57,14 +57,14 @@
       <p>Get a random meta deck every match.</p>
     </button>
     
-    <!-- NEW: ELIXIR VISUALIZER BUTTON -->
+    <!-- ELIXIR VISUALIZER BUTTON -->
     <button class="mode-btn" id="btnElixirFlow" style="border-color: var(--elixir-1);">
       <h2 style="color: var(--elixir-1);">Elixir Flow Visualizer</h2>
       <p>Watch and learn the exact elixir pacing in 1x, 2x, and 3x speed.</p>
     </button>
   </div>
 
-  <!-- NEW SCREEN: ELIXIR FLOW VISUALIZER -->
+  <!-- SCREEN: ELIXIR FLOW VISUALIZER -->
   <div id="elixirFlowScreen" class="screen">
     <div class="ios-top-bar">
       <button class="btn-back left-action" id="btnBackFlow">← Back</button>
@@ -97,7 +97,7 @@
         </div>
       </div>
 
-      <!-- NEW: 3-WAY SPEED TOGGLE -->
+      <!-- 3-WAY SPEED TOGGLE -->
       <div class="speed-toggle" id="speedToggle">
         <div class="toggle-bg"></div>
         <button class="toggle-btn active" id="btnSpeed1">1x Speed</button>
@@ -272,7 +272,8 @@
     }
   </script>
   
-  <!-- Load data first, then app logic -->
+  <!-- Load Scripts: SFX FIRST, then Data, then Logic -->
+  <script src="sfx.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>
 </body>
