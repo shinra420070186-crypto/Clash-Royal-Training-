@@ -17,7 +17,7 @@
 </head>
 <body>
   
-  <!-- SCREEN: DECK SELECTION -->
+  <!-- SCREEN: DECK SELECTION (Main Menu 1) -->
   <div id="deckSelectScreen" class="screen active">
     <div class="menu-top-bar">
       <label class="theme-switch">
@@ -43,6 +43,7 @@
     </div>
     <div class="menu-logo">SELECT DECK</div>
     <div class="menu-subtitle">Choose how you want to train</div>
+    
     <button class="mode-btn" id="btnCreateDeck">
       <h2>Create Deck</h2>
       <p>Build a custom 8-card deck from 114 cards.</p>
@@ -55,6 +56,56 @@
       <h2>Random Deck</h2>
       <p>Get a random meta deck every match.</p>
     </button>
+    
+    <!-- NEW: ELIXIR VISUALIZER BUTTON -->
+    <button class="mode-btn" id="btnElixirFlow" style="border-color: var(--elixir-1);">
+      <h2 style="color: var(--elixir-1);">Elixir Flow Visualizer</h2>
+      <p>Watch and learn the exact elixir pacing in 1x, 2x, and 3x speed.</p>
+    </button>
+  </div>
+
+  <!-- NEW SCREEN: ELIXIR FLOW VISUALIZER -->
+  <div id="elixirFlowScreen" class="screen">
+    <div class="ios-top-bar">
+      <button class="btn-back left-action" id="btnBackFlow">← Back</button>
+      <div class="title">Visualizer</div>
+      <div style="width: 70px;"></div> <!-- Spacer -->
+    </div>
+    
+    <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%;">
+      
+      <div class="flow-visualizer-box">
+        <div class="flow-drop-container">
+          <svg viewBox="0 0 24 32">
+            <path d="M12 0 C12 0 2 12 2 20 C2 26.6 6.5 32 12 32 C17.5 32 22 26.6 22 20 C22 12 12 0 12 0 Z" fill="url(#flowDropGrad)"/>
+            <defs>
+              <linearGradient id="flowDropGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#d946ef"/>
+                <stop offset="100%" stop-color="#7e22ce"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span id="flowElixirText" class="flow-count">0</span>
+        </div>
+        
+        <div class="flow-bar-container">
+          <div class="flow-bar-fill" id="flowElixirFill"></div>
+          <div class="flow-drops">
+            <div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div>
+            <div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NEW: 3-WAY SPEED TOGGLE -->
+      <div class="speed-toggle" id="speedToggle">
+        <div class="toggle-bg"></div>
+        <button class="toggle-btn active" id="btnSpeed1">1x Speed</button>
+        <button class="toggle-btn" id="btnSpeed2">2x Speed</button>
+        <button class="toggle-btn" id="btnSpeed3">3x Speed</button>
+      </div>
+      
+    </div>
   </div>
   
   <!-- SCREEN: CUSTOM DECK BUILDER -->
@@ -64,7 +115,6 @@
       <div class="title">Create Deck</div>
       <button class="sort-btn right-action" id="sortElixirBtn">By Elixir <span id="sortIcon" class="sort-icon">▲</span></button>
     </div>
-    
     <div class="custom-deck-slots" id="customDeckSlots"></div>
     <button class="next-btn" id="btnStartCustom" style="display:none;">Start Training</button>
     <div class="card-pool-grid" id="cardPoolGrid"></div>
@@ -91,7 +141,6 @@
     <div class="menu-logo">TRAINING MODE</div>
     <div class="menu-subtitle" style="margin-bottom: 24px;">Select your training focus</div>
     
-    <!-- NEW: MATCH TYPE TOGGLE -->
     <div class="match-type-toggle" id="matchTypeToggle">
       <div class="toggle-bg"></div>
       <button class="toggle-btn active" id="btnTypeClassic">Classic</button>
