@@ -41,7 +41,6 @@ let flowElixir = 0;
 let flowMultiplier = 1;
 let flowLastTime = 0;
 let flowAnimId = null;
-let lastElixirFloor = 0;
 
 const $ = id => document.getElementById(id);
 
@@ -156,17 +155,6 @@ btnRandomDeck.addEventListener('click', () => {
   menuScreen.classList.add('active');
 });
 
-
-// === REAL SFX ENGINE === 
-// Using a clean, high-quality water drop sound instead of a synth beep
-const elixirPop = new Audio('https://actions.google.com/sounds/v1/water/water_drop.ogg');
-elixirPop.volume = 0.6;
-
-function playElixirPop() {
-  elixirPop.currentTime = 0; 
-  elixirPop.play().catch(err => console.log('Waiting for user interaction to play sound...'));
-}
-
 // Flow Visualizer Listeners
 btnElixirFlow.addEventListener('click', startFlowVisualizer);
 
@@ -191,7 +179,6 @@ function setFlowSpeed(mult) {
 
 function startFlowVisualizer() {
   flowElixir = 0;
-  lastElixirFloor = 0;
   setFlowSpeed(1);
   deckSelectScreen.classList.remove('active');
   elixirFlowScreen.classList.add('active');
@@ -212,21 +199,12 @@ function flowLoop(now) {
   let addedElixir = delta / rate;
   flowElixir += addedElixir;
   
-  if (flowElixir >= 10.1) {
+  if (flowElixir >= 10) {
     flowElixir = 0; 
-    lastElixirFloor = 0;
-  } else {
-    let currentFloor = Math.floor(flowElixir);
-    if (currentFloor > lastElixirFloor && currentFloor <= 10) {
-      playElixirPop();
-      lastElixirFloor = currentFloor;
-      $('flowElixirText').classList.add('pulse');
-      setTimeout(() => $('flowElixirText').classList.remove('pulse'), 150);
-    }
   }
   
-  $('flowElixirText').innerText = Math.min(10, Math.floor(flowElixir));
-  $('flowElixirFill').style.width = (Math.min(10, flowElixir) * 10) + '%';
+  $('flowElixirText').innerText = Math.floor(flowElixir);
+  $('flowElixirFill').style.width = (flowElixir * 10) + '%';
   
   flowAnimId = requestAnimationFrame(flowLoop);
 }
@@ -279,6 +257,28 @@ btnStartCustom.addEventListener('click', () => {
   state.activeDeck = state.customDeckNames.map(name => MASTER_DECK.find(c => c.name === name));
   $('selectedDeckTitle').innerText = "Custom Deck";
   createDeckScreen.classList.remove('active');
+  menuScreen.classList.add('active');
+});
+
+deckPreviewModal.addEventListener('click', (e) => {
+  if (e.target === deckPreviewModal) {
+    deckPreviewModal.classList.remove('active');
+  }
+});
+
+difficultyModal.addEventListener('click', (e) => {
+  if (e.target === difficultyModal) {
+    difficultyModal.classList.remove('active');
+  }
+});
+
+btnStartPreview.addEventListener('click', () => {
+  deckPreviewModal.classList.remove('active');
+  state.deckMode = 'preset';
+  const selectedDeck = PRESET_DECKS[state.selectedPresetIndex];
+  state.activeDeck = selectedDeck.cards.map(name => MASTER_DECK.find(c => c.name === name));
+  $('selectedDeckTitle').innerText = selectedDeck.name;
+  presetDeckScreen.classList.remove('active');
   menuScreen.classList.add('active');
 });
 
