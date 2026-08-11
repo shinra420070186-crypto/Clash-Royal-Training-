@@ -246,16 +246,19 @@ body {
   transform: translateX(100%);
 }
 
+/* === STICKY FROSTED DECK SLOTS (NARROWER & CENTERED) === */
 .custom-deck-slots {
   position: sticky;
   top: 100px;
   z-index: 90;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin-bottom: 24px;
-  padding: 16px;
-  border-radius: 0 0 24px 24px;
+  gap: 8px;
+  margin: 0 auto 24px auto; /* Centers the block */
+  width: 88%; /* Reduces the width from the screen edges */
+  max-width: 360px; /* Cap size on larger screens */
+  padding: 12px;
+  border-radius: 0 0 20px 20px;
   background: var(--glass-bg);
   backdrop-filter: blur(24px) saturate(150%);
   -webkit-backdrop-filter: blur(24px) saturate(150%);
@@ -300,7 +303,7 @@ body {
 
 .empty-custom-slot {
   color: var(--text-main);
-  font-size: 28px;
+  font-size: 24px; /* Reduced slightly for the tighter grid */
   font-weight: 200;
   opacity: 0.3;
 }
