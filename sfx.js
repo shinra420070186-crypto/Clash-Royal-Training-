@@ -1,4 +1,4 @@
-// sfx.js - Crisp Mechanical UI Tick Engine
+// sfx.js - White Noise Percussive UI Click
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
 
@@ -11,33 +11,40 @@ function initAudio() {
   }
 }
 
-// Generates a sharp, premium mechanical "tick" 
+// Generates a natural, non-tonal "tick" using a filtered noise burst
 function playElixirTick() {
   initAudio();
   
   const t = audioCtx.currentTime;
-  const osc = audioCtx.createOscillator();
-  const gainNode = audioCtx.createGain();
+  
+  // 1. Create a tiny 50-millisecond buffer of pure white noise (static)
+  const bufferSize = audioCtx.sampleRate * 0.05; 
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1; 
+  }
+  
+  const noiseSource = audioCtx.createBufferSource();
+  noiseSource.buffer = buffer;
+  
+  // 2. Pass the noise through a filter to turn "hiss" into a sharp "tap"
   const filter = audioCtx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(2500, t); // Centers the sound to mimic a wooden/plastic click
+  filter.Q.setValueAtTime(1.5, t); 
   
-  // A low-frequency square wave provides a dense raw texture
-  osc.type = 'square';
-  osc.frequency.setValueAtTime(100, t); 
-  
-  // THE MAGIC: A high-pass filter cuts out the "beep/buzz" and leaves only the sharp "snap"
-  filter.type = 'highpass';
-  filter.frequency.setValueAtTime(4000, t); // Cuts off everything below 4000Hz
-  
-  // Extremely fast volume envelope (Total duration: just 15 milliseconds)
+  // 3. Shape the volume so it vanishes almost instantly
+  const gainNode = audioCtx.createGain();
   gainNode.gain.setValueAtTime(0, t);
-  gainNode.gain.linearRampToValueAtTime(0.8, t + 0.001);        // Instant attack
-  gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.015); // Instant decay
+  gainNode.gain.linearRampToValueAtTime(0.6, t + 0.001); // Instant tap
+  gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.02); // Silence after 20ms
   
-  // Connect the chain: Oscillator -> Filter -> Volume -> Output
-  osc.connect(filter);
+  // Connect the chain
+  noiseSource.connect(filter);
   filter.connect(gainNode);
   gainNode.connect(audioCtx.destination);
   
-  osc.start(t);
-  osc.stop(t + 0.02); // Kill it completely after 20ms to prevent artifacting
+  // Play the tick
+  noiseSource.start(t);
 }
