@@ -41,7 +41,7 @@ let flowElixir = 0;
 let flowMultiplier = 1;
 let flowLastTime = 0;
 let flowAnimId = null;
-let lastElixirFloor = 0; // Tracks when to play sound
+let lastElixirFloor = 0;
 
 const $ = id => document.getElementById(id);
 
@@ -156,36 +156,15 @@ btnRandomDeck.addEventListener('click', () => {
   menuScreen.classList.add('active');
 });
 
+
 // === REAL SFX ENGINE === 
-// Using a real, high-quality water drop sound instead of a synth beep
+// Using a clean, high-quality water drop sound instead of a synth beep
 const elixirPop = new Audio('https://actions.google.com/sounds/v1/water/water_drop.ogg');
-elixirPop.volume = 0.6; // Adjust volume from 0.0 to 1.0
+elixirPop.volume = 0.6;
 
 function playElixirPop() {
-  elixirPop.currentTime = 0; // Instantly resets the sound so it can play fast multiple times
-  
-  // Play the sound (catch prevents browser errors if the user hasn't tapped the screen yet)
+  elixirPop.currentTime = 0; 
   elixirPop.play().catch(err => console.log('Waiting for user interaction to play sound...'));
-}
-
-  
-  const osc = audioCtx.createOscillator();
-  const gainNode = audioCtx.createGain();
-  
-  // Soft, satisfying UI bloop
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
-  
-  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-  gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.02);
-  gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
-  
-  osc.connect(gainNode);
-  gainNode.connect(audioCtx.destination);
-  
-  osc.start();
-  osc.stop(audioCtx.currentTime + 0.2);
 }
 
 // Flow Visualizer Listeners
@@ -211,8 +190,6 @@ function setFlowSpeed(mult) {
 }
 
 function startFlowVisualizer() {
-  if (!audioCtx) audioCtx = new AudioContext();
-  
   flowElixir = 0;
   lastElixirFloor = 0;
   setFlowSpeed(1);
@@ -236,7 +213,6 @@ function flowLoop(now) {
   flowElixir += addedElixir;
   
   if (flowElixir >= 10.1) {
-    // Small buffer at 10 so it completes the visual before snapping back
     flowElixir = 0; 
     lastElixirFloor = 0;
   } else {
