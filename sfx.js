@@ -1,4 +1,4 @@
-// sfx.js - Smooth, Warm Sound Engine
+// sfx.js - Crisp Mechanical UI Tick Engine
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
 
@@ -11,28 +11,33 @@ function initAudio() {
   }
 }
 
-// Generates a smooth, satisfying "thock" or soft organic bubble sound
+// Generates a sharp, premium mechanical "tick" 
 function playElixirTick() {
   initAudio();
   
+  const t = audioCtx.currentTime;
   const osc = audioCtx.createOscillator();
   const gainNode = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
   
-  // Sine wave is the smoothest, most natural-sounding digital waveform (no harsh robotic buzzing)
-  osc.type = 'sine';
+  // A low-frequency square wave provides a dense raw texture
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(100, t); 
   
-  // Start at a pleasant mid-tone (450Hz) and drop the pitch smoothly to give it depth and weight
-  osc.frequency.setValueAtTime(450, audioCtx.currentTime); 
-  osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1); 
+  // THE MAGIC: A high-pass filter cuts out the "beep/buzz" and leaves only the sharp "snap"
+  filter.type = 'highpass';
+  filter.frequency.setValueAtTime(4000, t); // Cuts off everything below 4000Hz
   
-  // Smooth volume envelope: soft tap in (0.015s), smooth fade out (0.15s) to avoid abrupt robotic clicks
-  gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-  gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.015); 
-  gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15); 
+  // Extremely fast volume envelope (Total duration: just 15 milliseconds)
+  gainNode.gain.setValueAtTime(0, t);
+  gainNode.gain.linearRampToValueAtTime(0.8, t + 0.001);        // Instant attack
+  gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.015); // Instant decay
   
-  osc.connect(gainNode);
+  // Connect the chain: Oscillator -> Filter -> Volume -> Output
+  osc.connect(filter);
+  filter.connect(gainNode);
   gainNode.connect(audioCtx.destination);
   
-  osc.start();
-  osc.stop(audioCtx.currentTime + 0.16);
+  osc.start(t);
+  osc.stop(t + 0.02); // Kill it completely after 20ms to prevent artifacting
 }
