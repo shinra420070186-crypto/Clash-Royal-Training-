@@ -1,10 +1,11 @@
 const state = {
   mode: null,
   difficulty: null,
-  matchType: 'classic',
+  matchType: 'classic', 
+  isHardcore: false,      // NEW: Tracks if we are in Hardcore mode
   isGameOver: false,
   isFirstRound: true,
-  deckMode: null,
+  deckMode: 'preset',     // Default to preset so user has a deck instantly
   activeDeck: [],
   deck: [],
   hand: [],
@@ -13,6 +14,7 @@ const state = {
   score: 0,
   streak: 0,
   highScore: 0,
+  highScoreHc: 0,         // NEW: Hardcore high score tracking
   phase: 'menu',
   lastPlayedCard: null,
   matchTime: 0,
@@ -29,14 +31,13 @@ const state = {
   sequenceSelection: [],
   sequenceTarget: 0,
   customDeckNames: [],
-  selectedPresetIndex: -1,
+  selectedPresetIndex: 0, // Default to 2.6 Hog
   sortDirection: 'asc',
   playsThisRound: 0,
   targetPlays: 0,
   botTargetHold: 0
 };
 
-// Flow Visualizer variables
 let flowElixir = 0;
 let flowMultiplier = 1;
 let flowLastTime = 0;
@@ -45,66 +46,34 @@ let lastElixirFloor = 0;
 
 const $ = id => document.getElementById(id);
 
-const deckSelectScreen = $('deckSelectScreen'),
-      createDeckScreen = $('createDeckScreen'),
+// NEW: Main Navigation Setup
+const navItems = document.querySelectorAll('.nav-item');
+const tabScreens = document.querySelectorAll('.tab-screen');
+const mainTabsContainer = $('mainTabsContainer');
+
+// Full Screens
+const createDeckScreen = $('createDeckScreen'),
       presetDeckScreen = $('presetDeckScreen'),
-      menuScreen = $('menuScreen'),
       gameScreen = $('gameScreen'),
       gameOverScreen = $('gameOverScreen'),
-      elixirFlowScreen = $('elixirFlowScreen'),
       difficultyModal = $('difficultyModal'),
       deckPreviewModal = $('deckPreviewModal');
-      
-const btnCreateDeck = $('btnCreateDeck'),
-      btnSelectPreset = $('btnSelectPreset'),
-      btnRandomDeck = $('btnRandomDeck'),
-      btnElixirFlow = $('btnElixirFlow'),
-      btnBackCreate = $('btnBackCreate'),
-      btnBackPreset = $('btnBackPreset'),
-      btnBackFlow = $('btnBackFlow'),
-      btnStartCustom = $('btnStartCustom'),
-      btnChangeDeck = $('btnChangeDeck');
-      
-const cardPoolGrid = $('cardPoolGrid'),
-      customDeckSlots = $('customDeckSlots');
-      
-const deckSearch = $('deckSearch'),
-      presetDeckList = $('presetDeckList');
-      
-const btnExit = $('btnExit'),
-      btnNext = $('btnNext'),
-      btnPlayAgain = $('btnPlayAgain'),
-      btnGoMenu = $('btnGoMenu'),
-      highScoreBanner = $('highScoreBanner'),
-      hsValue = $('hsValue');
-      
-const choicesGrid = $('choicesGrid'),
-      choicesGridSeq = $('choicesGridSeq'),
-      seqResults = $('seqResults'),
-      actionTitle = $('actionTitle'),
-      elixirWrapper = $('elixirWrapper');
-      
-const transitionOverlay = $('transitionOverlay'),
-      transitionText = $('transitionText');
-      
-const sortElixirBtn = $('sortElixirBtn'),
-      sortIcon = $('sortIcon');
-      
-const previewDeckName = $('previewDeckName'),
-      previewCardsGrid = $('previewCardsGrid'),
-      btnStartPreview = $('btnStartPreview');
 
-const lastPlayedWrapper = $('lastPlayedWrapper'),
-      lastPlayedCardContainer = $('lastPlayedCardContainer');
-      
+const currentDeckLabel = $('currentDeckLabel');
+
 // Initialization
 try {
   state.highScore = parseInt(localStorage.getItem('crHighScore')) || 0;
+  state.highScoreHc = parseInt(localStorage.getItem('crHighScoreHc')) || 0;
 } catch(e) {}
 
 if (state.highScore > 0) {
-  hsValue.innerText = state.highScore;
-  highScoreBanner.style.display = 'block';
+  $('hsValue').innerText = state.highScore;
+  $('highScoreBanner').style.display = 'block';
+}
+if (state.highScoreHc > 0) {
+  $('hsValueHc').innerText = state.highScoreHc;
+  $('highScoreBannerHc').style.display = 'block';
 }
 
 const themeCheckbox = $('themeCheckbox'),
@@ -133,38 +102,101 @@ themeCheckbox.addEventListener('change', function() {
   }
 });
 
-// Event Listeners for Menus
-btnCreateDeck.addEventListener('click', () => {
+// Set default deck on load so Match tabs work instantly
+function setDefaultDeck() {
+  const defaultDeck = PRESET_DECKS[state.selectedPresetIndex];
+  state.activeDeck = defaultDeck.cards.map(name => MASTER_DECK.find(c => c.name === name));
+  updateDeckLabels(defaultDeck.name);
+}
+setDefaultDeck();
+
+function updateDeckLabels(name) {
+  currentDeckLabel.innerText = "Current: " + name;
+}
+
+// ==========================================
+// BOTTOM NAVIGATION LOGIC
+// ==========================================
+function switchTab(tabId) {
+  navItems.forEach(nav => nav.classList.remove('active'));
+  tabScreens.forEach(tab => tab.classList.remove('active'));
+
+  document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
+  document.getElementById(`tab-${tabId}`).classList.add('active');
+
+  if(tabId === 'elixir') {
+     startFlowVisualizer();
+  } else {
+     if(flowAnimId) cancelAnimationFrame(flowAnimId);
+  }
+}
+
+navItems.forEach(nav => {
+  nav.addEventListener('click', () => switchTab(nav.getAttribute('data-tab')));
+});
+// ==========================================
+
+// Deck Tab Buttons
+$('btnCreateDeck').addEventListener('click', () => {
   state.customDeckNames = [];
   renderCustomDeckSlots();
   renderCardPool();
-  deckSelectScreen.classList.remove('active');
+  mainTabsContainer.classList.remove('active');
   createDeckScreen.classList.add('active');
 });
 
-btnSelectPreset.addEventListener('click', () => {
+$('btnSelectPreset').addEventListener('click', () => {
   state.selectedPresetIndex = -1;
   renderPresetDecks('');
-  deckSelectScreen.classList.remove('active');
+  mainTabsContainer.classList.remove('active');
   presetDeckScreen.classList.add('active');
 });
 
-btnRandomDeck.addEventListener('click', () => {
+$('btnRandomDeck').addEventListener('click', () => {
   state.deckMode = 'random';
-  $('selectedDeckTitle').innerText = "Random Deck";
-  deckSelectScreen.classList.remove('active');
-  menuScreen.classList.add('active');
+  const randomIndex = Math.floor(Math.random() * PRESET_DECKS.length);
+  state.activeDeck = PRESET_DECKS[randomIndex].cards.map(name => MASTER_DECK.find(c => c.name === name));
+  updateDeckLabels("Random Deck");
+  switchTab('match'); // Auto switch to Match tab
 });
 
-// Flow Visualizer Listeners
-btnElixirFlow.addEventListener('click', startFlowVisualizer);
-
-btnBackFlow.addEventListener('click', () => {
-  if(flowAnimId) cancelAnimationFrame(flowAnimId);
-  elixirFlowScreen.classList.remove('active');
-  deckSelectScreen.classList.add('active');
+$('btnBackCreate').addEventListener('click', () => {
+  createDeckScreen.classList.remove('active');
+  mainTabsContainer.classList.add('active');
 });
 
+$('btnBackPreset').addEventListener('click', () => {
+  presetDeckScreen.classList.remove('active');
+  mainTabsContainer.classList.add('active');
+});
+
+// Match Type Toggles (Syncs both screens)
+function setMatchType(type) {
+  state.matchType = type;
+  $('btnTypeClassic').classList.remove('active');
+  $('btnTypeRanked').classList.remove('active');
+  $('btnTypeClassicHc').classList.remove('active');
+  $('btnTypeRankedHc').classList.remove('active');
+  $('matchTypeToggle').classList.remove('ranked');
+  $('hardcoreTypeToggle').classList.remove('ranked');
+
+  if(type === 'classic') {
+    $('btnTypeClassic').classList.add('active');
+    $('btnTypeClassicHc').classList.add('active');
+  } else {
+    $('btnTypeRanked').classList.add('active');
+    $('btnTypeRankedHc').classList.add('active');
+    $('matchTypeToggle').classList.add('ranked');
+    $('hardcoreTypeToggle').classList.add('ranked');
+  }
+}
+
+$('btnTypeClassic').addEventListener('click', () => setMatchType('classic'));
+$('btnTypeRanked').addEventListener('click', () => setMatchType('ranked'));
+$('btnTypeClassicHc').addEventListener('click', () => setMatchType('classic'));
+$('btnTypeRankedHc').addEventListener('click', () => setMatchType('ranked'));
+
+// Elixir Flow Tab Logic
 $('btnSpeed1').addEventListener('click', () => { setFlowSpeed(1); });
 $('btnSpeed2').addEventListener('click', () => { setFlowSpeed(2); });
 $('btnSpeed3').addEventListener('click', () => { setFlowSpeed(3); });
@@ -182,9 +214,6 @@ function startFlowVisualizer() {
   flowElixir = 0;
   lastElixirFloor = 0;
   setFlowSpeed(1);
-  deckSelectScreen.classList.remove('active');
-  elixirFlowScreen.classList.add('active');
-  
   flowLastTime = performance.now();
   if(flowAnimId) cancelAnimationFrame(flowAnimId);
   flowAnimId = requestAnimationFrame(flowLoop);
@@ -207,157 +236,115 @@ function flowLoop(now) {
   } else {
     let currentFloor = Math.floor(flowElixir);
     if (currentFloor > lastElixirFloor && currentFloor <= 10) {
-      if(typeof playElixirTick === 'function') {
-        playElixirTick();
-      }
+      if(typeof playElixirTick === 'function') playElixirTick();
       lastElixirFloor = currentFloor;
       $('flowElixirText').classList.add('pulse');
       setTimeout(() => $('flowElixirText').classList.remove('pulse'), 150);
     }
   }
-  
   $('flowElixirText').innerText = Math.min(10, Math.floor(flowElixir));
   $('flowElixirFill').style.width = (Math.min(10, flowElixir) * 10) + '%';
-  
   flowAnimId = requestAnimationFrame(flowLoop);
 }
 
-btnBackCreate.addEventListener('click', () => {
-  createDeckScreen.classList.remove('active');
-  deckSelectScreen.classList.add('active');
-});
-
-btnBackPreset.addEventListener('click', () => {
-  presetDeckScreen.classList.remove('active');
-  deckSelectScreen.classList.add('active');
-});
-
-btnChangeDeck.addEventListener('click', () => {
-  menuScreen.classList.remove('active');
-  deckSelectScreen.classList.add('active');
-});
-
-// Match Type Toggle Listeners
-$('btnTypeClassic').addEventListener('click', () => {
-  state.matchType = 'classic';
-  $('btnTypeClassic').classList.add('active');
-  $('btnTypeRanked').classList.remove('active');
-  $('matchTypeToggle').classList.remove('ranked');
-});
-
-$('btnTypeRanked').addEventListener('click', () => {
-  state.matchType = 'ranked';
-  $('btnTypeRanked').classList.add('active');
-  $('btnTypeClassic').classList.remove('active');
-  $('matchTypeToggle').classList.add('ranked');
-});
-
-deckSearch.addEventListener('input', (e) => renderPresetDecks(e.target.value));
-
-sortElixirBtn.addEventListener('click', () => {
+// Deck Building Logic
+$('deckSearch').addEventListener('input', (e) => renderPresetDecks(e.target.value));
+$('sortElixirBtn').addEventListener('click', () => {
   if (state.sortDirection === 'asc') {
     state.sortDirection = 'desc';
-    sortIcon.innerText = '▼';
+    $('sortIcon').innerText = '▼';
   } else {
     state.sortDirection = 'asc';
-    sortIcon.innerText = '▲';
+    $('sortIcon').innerText = '▲';
   }
   renderCardPool();
 });
 
-btnStartCustom.addEventListener('click', () => {
+$('btnStartCustom').addEventListener('click', () => {
   state.deckMode = 'custom';
   state.activeDeck = state.customDeckNames.map(name => MASTER_DECK.find(c => c.name === name));
-  $('selectedDeckTitle').innerText = "Custom Deck";
+  updateDeckLabels("Custom Deck");
   createDeckScreen.classList.remove('active');
-  menuScreen.classList.add('active');
+  mainTabsContainer.classList.add('active');
+  switchTab('match');
 });
 
 deckPreviewModal.addEventListener('click', (e) => {
-  if (e.target === deckPreviewModal) {
-    deckPreviewModal.classList.remove('active');
-  }
+  if (e.target === deckPreviewModal) deckPreviewModal.classList.remove('active');
 });
 
 difficultyModal.addEventListener('click', (e) => {
-  if (e.target === difficultyModal) {
-    difficultyModal.classList.remove('active');
-  }
+  if (e.target === difficultyModal) difficultyModal.classList.remove('active');
 });
 
-btnStartPreview.addEventListener('click', () => {
+$('btnStartPreview').addEventListener('click', () => {
   deckPreviewModal.classList.remove('active');
   state.deckMode = 'preset';
   const selectedDeck = PRESET_DECKS[state.selectedPresetIndex];
   state.activeDeck = selectedDeck.cards.map(name => MASTER_DECK.find(c => c.name === name));
-  $('selectedDeckTitle').innerText = selectedDeck.name;
+  updateDeckLabels(selectedDeck.name);
   presetDeckScreen.classList.remove('active');
-  menuScreen.classList.add('active');
+  mainTabsContainer.classList.add('active');
+  switchTab('match');
 });
 
 function showPresetPreview(index) {
   state.selectedPresetIndex = index;
   const deck = PRESET_DECKS[index];
-  previewDeckName.innerText = deck.name;
-  previewCardsGrid.innerHTML = '';
+  $('previewDeckName').innerText = deck.name;
+  $('previewCardsGrid').innerHTML = '';
   deck.cards.forEach(cardName => {
     const card = MASTER_DECK.find(c => c.name === cardName);
     if (card) {
       const img = document.createElement('img');
       img.src = card.img;
-      img.alt = card.name;
-      previewCardsGrid.appendChild(img);
+      $('previewCardsGrid').appendChild(img);
     }
   });
   deckPreviewModal.classList.add('active');
 }
 
 function renderCardPool() {
-  cardPoolGrid.innerHTML = '';
+  $('cardPoolGrid').innerHTML = '';
   let pool = [...MASTER_DECK].sort((a, b) => state.sortDirection === 'asc' ? (a.cost - b.cost || a.name.localeCompare(b.name)) : (b.cost - a.cost || b.name.localeCompare(a.name)));
   pool.forEach(card => {
     const item = document.createElement('div');
     item.className = 'card-pool-item';
     if (state.customDeckNames.includes(card.name)) item.classList.add('selected');
     if (state.customDeckNames.length >= 8 && !state.customDeckNames.includes(card.name)) item.classList.add('disabled');
-    item.innerHTML = `<img src="${card.img}" alt="${card.name}">`;
+    item.innerHTML = `<img src="${card.img}">`;
     item.addEventListener('click', () => toggleCustomCard(card.name));
-    cardPoolGrid.appendChild(item);
+    $('cardPoolGrid').appendChild(item);
   });
 }
 
 function toggleCustomCard(cardName) {
   const index = state.customDeckNames.indexOf(cardName);
-  if (index > -1) {
-    state.customDeckNames.splice(index, 1);
-  } else {
-    if (state.customDeckNames.length < 8) {
-      state.customDeckNames.push(cardName);
-    }
-  }
+  if (index > -1) state.customDeckNames.splice(index, 1);
+  else if (state.customDeckNames.length < 8) state.customDeckNames.push(cardName);
   renderCustomDeckSlots();
   renderCardPool();
 }
 
 function renderCustomDeckSlots() {
-  customDeckSlots.innerHTML = '';
+  $('customDeckSlots').innerHTML = '';
   for (let i = 0; i < 8; i++) {
     const slot = document.createElement('div');
     slot.className = 'custom-slot';
     if (state.customDeckNames[i]) {
       const card = MASTER_DECK.find(c => c.name === state.customDeckNames[i]);
-      slot.innerHTML = `<img src="${card.img}" alt="${card.name}">`;
+      slot.innerHTML = `<img src="${card.img}">`;
       slot.addEventListener('click', () => toggleCustomCard(card.name));
     } else {
       slot.innerHTML = `<div class="empty-custom-slot">+</div>`;
     }
-    customDeckSlots.appendChild(slot);
+    $('customDeckSlots').appendChild(slot);
   }
-  btnStartCustom.style.display = state.customDeckNames.length === 8 ? 'block' : 'none';
+  $('btnStartCustom').style.display = state.customDeckNames.length === 8 ? 'block' : 'none';
 }
 
 function renderPresetDecks(searchTerm) {
-  presetDeckList.innerHTML = '';
+  $('presetDeckList').innerHTML = '';
   const filtered = PRESET_DECKS.filter(deck => deck.name.toLowerCase().includes(searchTerm.toLowerCase()));
   filtered.forEach((deck, index) => {
     const item = document.createElement('div');
@@ -365,17 +352,23 @@ function renderPresetDecks(searchTerm) {
     let cardsHtml = '';
     deck.cards.forEach(cardName => {
       const card = MASTER_DECK.find(c => c.name === cardName);
-      if (card) cardsHtml += `<img src="${card.img}" alt="${card.name}">`;
+      if (card) cardsHtml += `<img src="${card.img}">`;
     });
     item.innerHTML = `<div class="preset-info"><h3>${deck.name}</h3><div class="preset-cards">${cardsHtml}</div></div>`;
-    item.addEventListener('click', () => { showPresetPreview(index); });
-    presetDeckList.appendChild(item);
+    item.addEventListener('click', () => showPresetPreview(index));
+    $('presetDeckList').appendChild(item);
   });
 }
 
-$('btnModeElixir').addEventListener('click', () => openDifficultyModal('elixir'));
-$('btnModeHand').addEventListener('click', () => openDifficultyModal('hand'));
-$('btnModeCombined').addEventListener('click', () => openDifficultyModal('combined'));
+// MATCH MODE LISTENERS
+$('btnMatchElixir').addEventListener('click', () => openDifficultyModal('elixir', false));
+$('btnMatchHand').addEventListener('click', () => openDifficultyModal('hand', false));
+$('btnMatchCombined').addEventListener('click', () => openDifficultyModal('combined', false));
+
+// HARDCORE MODE LISTENERS
+$('btnHardcoreElixir').addEventListener('click', () => openDifficultyModal('elixir', true));
+$('btnHardcoreHand').addEventListener('click', () => openDifficultyModal('hand', true));
+$('btnHardcoreCombined').addEventListener('click', () => openDifficultyModal('combined', true));
 
 $('btnEasy').addEventListener('click', () => selectDifficulty('easy'));
 $('btnNormal').addEventListener('click', () => selectDifficulty('normal'));
@@ -383,9 +376,14 @@ $('btnHard').addEventListener('click', () => selectDifficulty('hard'));
 $('btnElite').addEventListener('click', () => selectDifficulty('elite'));
 $('btnEndless').addEventListener('click', () => selectDifficulty('endless'));
 
-function openDifficultyModal(mode) {
+function openDifficultyModal(mode, isHardcore) {
   state.mode = mode;
+  state.isHardcore = isHardcore;
+  
   const isHand = (mode === 'hand'), isElixir = (mode === 'elixir');
+  
+  $('diffModalTitle').innerText = isHardcore ? "Hardcore Difficulty" : "Select Difficulty";
+  $('diffModalTitle').style.color = isHardcore ? "var(--error)" : "inherit";
   
   $('btnEasy').style.display = isHand ? 'block' : 'none';
   $('btnElite').style.display = isHand ? 'block' : 'none';
@@ -439,11 +437,24 @@ function startGame() {
   state.elixirRate = 2800;
   state.phase = 'playing';
   
-  menuScreen.classList.remove('active');
+  // Apply Hardcore CSS class
+  if(state.isHardcore) {
+    gameScreen.classList.add('hardcore-mode');
+    $('modeTitle').innerText = "Hardcore: " + (state.mode === 'elixir' ? "Elixir" : (state.mode === 'hand' ? "Hand" : "Combined"));
+    $('modeTitle').style.color = "var(--error)";
+    $('focusText').innerText = "Blind Tracking Active";
+  } else {
+    gameScreen.classList.remove('hardcore-mode');
+    $('modeTitle').innerText = state.mode === 'elixir' ? "Elixir Mode" : (state.mode === 'hand' ? "Hand Mode" : "Combined");
+    $('modeTitle').style.color = "var(--text-main)";
+    $('focusText').innerText = "Watch the cards leave the hand";
+  }
+
+  mainTabsContainer.classList.remove('active');
   gameOverScreen.classList.remove('active');
   gameScreen.classList.add('active');
-  $('modeTitle').innerText = state.mode === 'elixir' ? "Elixir Mode" : (state.mode === 'hand' ? "Hand Mode" : "Combined");
   
+  const elixirWrapper = $('elixirWrapper');
   if (state.mode === 'hand' || state.difficulty === 'endless') {
     elixirWrapper.innerHTML = state.mode === 'hand' ? '' : `<div class="elixir-hidden-placeholder">Elixir is Hidden! Opponent starts at 10. Track mentally.</div>`;
     state.matchDuration = Infinity;
@@ -454,18 +465,18 @@ function startGame() {
     state.matchDuration = state.difficulty === 'hard' ? 240000 : 180000;
   }
   
-  actionTitle.innerText = 'Watch the opponent play...';
-  choicesGrid.innerHTML = '';
-  choicesGrid.style.display = 'none';
-  choicesGridSeq.innerHTML = '';
-  choicesGridSeq.style.display = 'none';
-  seqResults.innerHTML = '';
-  seqResults.style.display = 'none';
-  btnNext.style.display = 'none';
-  btnNext.innerText = 'Continue';
+  $('actionTitle').innerText = 'Watch the opponent play...';
+  $('choicesGrid').innerHTML = '';
+  $('choicesGrid').style.display = 'none';
+  $('choicesGridSeq').innerHTML = '';
+  $('choicesGridSeq').style.display = 'none';
+  $('seqResults').innerHTML = '';
+  $('seqResults').style.display = 'none';
+  $('btnNext').style.display = 'none';
+  $('btnNext').innerText = 'Continue';
   
-  lastPlayedWrapper.classList.remove('active');
-  lastPlayedCardContainer.innerHTML = '';
+  $('lastPlayedWrapper').classList.remove('active');
+  $('lastPlayedCardContainer').innerHTML = '';
   
   initHandSlots();
   updateStatsUI();
@@ -476,23 +487,23 @@ function startGame() {
   state.animationFrameId = requestAnimationFrame(gameLoop);
 }
 
-btnExit.addEventListener('click', () => {
+$('btnExit').addEventListener('click', () => {
   gameScreen.classList.remove('active');
-  menuScreen.classList.add('active');
+  mainTabsContainer.classList.add('active');
   if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
 });
 
-btnPlayAgain.addEventListener('click', () => {
+$('btnPlayAgain').addEventListener('click', () => {
   gameOverScreen.classList.remove('active');
   startGame();
 });
 
-btnGoMenu.addEventListener('click', () => {
+$('btnGoMenu').addEventListener('click', () => {
   gameOverScreen.classList.remove('active');
-  menuScreen.classList.add('active');
+  mainTabsContainer.classList.add('active');
 });
 
-btnNext.addEventListener('click', continueGame);
+$('btnNext').addEventListener('click', continueGame);
 
 function initHandSlots() {
   const handRow = $('handRow');
@@ -502,7 +513,8 @@ function initHandSlots() {
     slotEl.className = 'card-slot';
     slotEl.id = `slot-${i}`;
     handRow.appendChild(slotEl);
-    if (i < state.hand.length) addCardToSlot(i, state.hand[i], false);
+    // If not hardcore, animate them in
+    if (i < state.hand.length && !state.isHardcore) addCardToSlot(i, state.hand[i], false);
   }
 }
 
@@ -513,7 +525,7 @@ function addCardToSlot(slotIndex, card, animateEntering = true) {
   const cardEl = document.createElement('div');
   cardEl.className = 'card';
   if (animateEntering) cardEl.classList.add('entering');
-  cardEl.innerHTML = `<img src="${card.img}" class="card-img" alt="${card.name}">`;
+  cardEl.innerHTML = `<img src="${card.img}" class="card-img">`;
   slot.appendChild(cardEl);
   if (animateEntering) {
     void cardEl.offsetWidth;
@@ -560,7 +572,10 @@ function gameLoop(now) {
     if (state.queue.length > 0 && state.hand.length < 4) {
       let newCard = state.queue.shift();
       state.hand.splice(state.cycleSlotIndex, 0, newCard);
-      addCardToSlot(state.cycleSlotIndex, newCard, true);
+      // Only visually add to slot if NOT in hardcore
+      if (!state.isHardcore) {
+        addCardToSlot(state.cycleSlotIndex, newCard, true);
+      }
     }
     state.cyclePending = false;
   }
@@ -619,11 +634,20 @@ function playOpponentCard(now) {
     if (state.mode !== 'hand') state.elixir -= playedCard.cost;
     
     state.lastPlayedCard = playedCard;
-    lastPlayedCardContainer.innerHTML = `<img src="${playedCard.img}" class="last-played-card">`;
-    lastPlayedWrapper.classList.add('active');
     
-    const slot = $(`slot-${playIdx}`);
-    if (slot && slot.firstChild) slot.firstChild.classList.add('played');
+    // Animate the Last Played Block (works for both modes, but crucial for Hardcore)
+    const lpContainer = $('lastPlayedCardContainer');
+    lpContainer.innerHTML = '';
+    setTimeout(() => {
+        lpContainer.innerHTML = `<img src="${playedCard.img}" class="last-played-card">`;
+        $('lastPlayedWrapper').classList.add('active');
+    }, 10);
+    
+    // Only animate out of the slot if NOT in hardcore mode
+    if (!state.isHardcore) {
+      const slot = $(`slot-${playIdx}`);
+      if (slot && slot.firstChild) slot.firstChild.classList.add('played');
+    }
     
     state.hand.splice(playIdx, 1);
     state.queue.push(playedCard);
@@ -665,9 +689,9 @@ function playOpponentCard(now) {
 }
 
 function showTransition(mult) {
-  transitionText.innerText = mult === 2 ? "DOUBLE ELIXIR" : "TRIPLE ELIXIR";
-  transitionOverlay.style.opacity = '1';
-  setTimeout(() => { transitionOverlay.style.opacity = '0'; }, 1500);
+  $('transitionText').innerText = mult === 2 ? "DOUBLE ELIXIR" : "TRIPLE ELIXIR";
+  $('transitionOverlay').style.opacity = '1';
+  setTimeout(() => { $('transitionOverlay').style.opacity = '0'; }, 1500);
 }
 
 function getElixirBarHTML() {
@@ -734,18 +758,18 @@ function updateStatsUI() {
 }
 
 function revealElixirBar() {
-  elixirWrapper.innerHTML = getElixirBarHTML();
+  $('elixirWrapper').innerHTML = getElixirBarHTML();
   updateElixirUI();
 }
 
 function triggerQuestion() {
-  choicesGrid.innerHTML = '';
-  choicesGrid.style.display = 'none';
-  choicesGridSeq.innerHTML = '';
-  choicesGridSeq.style.display = 'none';
-  seqResults.innerHTML = '';
-  seqResults.style.display = 'none';
-  btnNext.style.display = 'none';
+  $('choicesGrid').innerHTML = '';
+  $('choicesGrid').style.display = 'none';
+  $('choicesGridSeq').innerHTML = '';
+  $('choicesGridSeq').style.display = 'none';
+  $('seqResults').innerHTML = '';
+  $('seqResults').style.display = 'none';
+  $('btnNext').style.display = 'none';
   
   let questionType = state.mode;
   if (state.mode === 'combined') {
@@ -760,8 +784,8 @@ function triggerQuestion() {
   if (questionType === 'just_played' && !state.lastPlayedCard) questionType = 'elixir';
   
   if (questionType === 'elixir') {
-    actionTitle.innerText = "How much elixir does the opponent have RIGHT NOW?";
-    choicesGrid.style.display = 'grid';
+    $('actionTitle').innerText = "How much elixir does the opponent have RIGHT NOW?";
+    $('choicesGrid').style.display = 'grid';
     
     let exactElixir = state.elixir + (state.elixirProgress / state.elixirRate);
     let floorVal = Math.floor(exactElixir), ceilVal = Math.ceil(exactElixir), fraction = exactElixir - floorVal;
@@ -785,12 +809,12 @@ function triggerQuestion() {
       btn.innerText = opt;
       btn.setAttribute('data-value', opt);
       btn.onclick = function() { handleAnswer(opt, correctAnswers, btn); };
-      choicesGrid.appendChild(btn);
+      $('choicesGrid').appendChild(btn);
     });
     
   } else if (questionType === 'just_played') {
-    actionTitle.innerText = "Which card did the opponent JUST PLAY?";
-    choicesGrid.style.display = 'grid';
+    $('actionTitle').innerText = "Which card did the opponent JUST PLAY?";
+    $('choicesGrid').style.display = 'grid';
     let correctCard = state.lastPlayedCard;
     let correctAnswers = new Set([correctCard.name]);
     let options = new Set([correctCard]);
@@ -804,12 +828,12 @@ function triggerQuestion() {
       btn.innerHTML = `<img src="${opt.img}" alt="${opt.name}">`;
       btn.setAttribute('data-value', opt.name);
       btn.onclick = function() { handleAnswer(opt.name, correctAnswers, btn); };
-      choicesGrid.appendChild(btn);
+      $('choicesGrid').appendChild(btn);
     });
     
   } else if (questionType === 'next_cycle') {
-    actionTitle.innerText = "Which card is NEXT in the opponent's cycle?";
-    choicesGrid.style.display = 'grid';
+    $('actionTitle').innerText = "Which card is NEXT in the opponent's cycle?";
+    $('choicesGrid').style.display = 'grid';
     let correctCard = state.queue[0];
     let correctAnswers = new Set([correctCard.name]);
     let options = new Set([correctCard]);
@@ -823,7 +847,7 @@ function triggerQuestion() {
       btn.innerHTML = `<img src="${opt.img}" alt="${opt.name}">`;
       btn.setAttribute('data-value', opt.name);
       btn.onclick = function() { handleAnswer(opt.name, correctAnswers, btn); };
-      choicesGrid.appendChild(btn);
+      $('choicesGrid').appendChild(btn);
     });
     
   } else if (questionType === 'sequence') {
@@ -836,8 +860,8 @@ function triggerQuestion() {
     state.sequenceTarget = count;
     state.sequenceSelection = [];
     
-    actionTitle.innerText = `Select the next ${count} card${count > 1 ? 's' : ''} in order:`;
-    choicesGridSeq.style.display = 'grid';
+    $('actionTitle').innerText = `Select the next ${count} card${count > 1 ? 's' : ''} in order:`;
+    $('choicesGridSeq').style.display = 'grid';
     let shuffledQueue = [...state.queue].sort(() => Math.random() - 0.5);
     shuffledQueue.forEach(opt => {
       let btn = document.createElement('button');
@@ -845,13 +869,13 @@ function triggerQuestion() {
       btn.innerHTML = `<img src="${opt.img}" alt="${opt.name}">`;
       btn.setAttribute('data-value', opt.name);
       btn.onclick = function() { toggleSequenceSelection(opt.name, btn); };
-      choicesGridSeq.appendChild(btn);
+      $('choicesGridSeq').appendChild(btn);
     });
   }
 }
 
 function toggleSequenceSelection(cardName, btn) {
-  if (btnNext.style.display === 'block') return;
+  if ($('btnNext').style.display === 'block') return;
   let idx = state.sequenceSelection.indexOf(cardName);
   if (idx > -1) {
     state.sequenceSelection.splice(idx, 1);
@@ -896,7 +920,7 @@ function submitSequenceAnswer() {
       break;
     }
   }
-  choicesGridSeq.style.display = 'none';
+  $('choicesGridSeq').style.display = 'none';
   let html = `<div class="seq-result-row correct"><div class="seq-result-cards">`;
   correctSequence.forEach((card, index) => {
     html += `<div class="seq-result-card"><img src="${card.img}"></div>`;
@@ -913,27 +937,25 @@ function submitSequenceAnswer() {
     html += `</div></div>`;
   }
   
-  seqResults.innerHTML = html;
-  seqResults.style.display = 'block';
+  $('seqResults').innerHTML = html;
+  $('seqResults').style.display = 'block';
   
   if (isCorrect) {
     state.score += 10 + (state.streak * 2);
     state.streak++;
-    actionTitle.innerText = 'Perfect! You got the order right.';
-    btnNext.innerText = 'Continue';
-    btnNext.style.display = 'block';
+    $('actionTitle').innerText = 'Perfect! You got the order right.';
+    $('btnNext').innerText = 'Continue';
+    $('btnNext').style.display = 'block';
   } else {
     state.streak = 0;
-    
-    // AUTOMATIC GAME OVER TRANSITION
     if (state.matchType === 'ranked') {
       state.isGameOver = true;
-      actionTitle.innerHTML = '<span style="color:var(--error);">Wrong order! Sudden Death.</span>';
-      setTimeout(endGame, 1200); // Waits 1.2s to show mistake, then auto-ends
+      $('actionTitle').innerHTML = '<span style="color:var(--error);">Wrong order! Sudden Death.</span>';
+      setTimeout(endGame, 1200);
     } else {
-      actionTitle.innerText = 'Wrong order! Check the comparison below.';
-      btnNext.innerText = 'Continue';
-      btnNext.style.display = 'block';
+      $('actionTitle').innerText = 'Wrong order! Check the comparison below.';
+      $('btnNext').innerText = 'Continue';
+      $('btnNext').style.display = 'block';
     }
   }
   
@@ -951,9 +973,9 @@ function handleAnswer(selected, correctAnswers, btn) {
     btn.classList.add('correct');
     state.score += 10 + (state.streak * 2);
     state.streak++;
-    actionTitle.innerText = 'Correct!';
-    btnNext.innerText = 'Continue';
-    btnNext.style.display = 'block';
+    $('actionTitle').innerText = 'Correct!';
+    $('btnNext').innerText = 'Continue';
+    $('btnNext').style.display = 'block';
   } else {
     btn.classList.add('wrong');
     state.streak = 0;
@@ -962,15 +984,14 @@ function handleAnswer(selected, correctAnswers, btn) {
       if (correctAnswers.has(val)) b.classList.add('correct');
     });
     
-    // AUTOMATIC GAME OVER TRANSITION
     if (state.matchType === 'ranked') {
       state.isGameOver = true;
-      actionTitle.innerHTML = '<span style="color:var(--error);">Wrong! Sudden Death.</span>';
-      setTimeout(endGame, 1200); // Waits 1.2s to show mistake, then auto-ends
+      $('actionTitle').innerHTML = '<span style="color:var(--error);">Wrong! Sudden Death.</span>';
+      setTimeout(endGame, 1200); 
     } else {
-      actionTitle.innerText = 'Wrong! Correct answer highlighted.';
-      btnNext.innerText = 'Continue';
-      btnNext.style.display = 'block';
+      $('actionTitle').innerText = 'Wrong! Correct answer highlighted.';
+      $('btnNext').innerText = 'Continue';
+      $('btnNext').style.display = 'block';
     }
   }
   
@@ -985,17 +1006,17 @@ function continueGame() {
   }
 
   if (state.mode === 'elixir' || state.mode === 'combined') {
-    elixirWrapper.innerHTML = `<div class="elixir-hidden-placeholder">Elixir is Hidden! Opponent starts at 10. Track mentally.</div>`;
+    $('elixirWrapper').innerHTML = `<div class="elixir-hidden-placeholder">Elixir is Hidden! Opponent starts at 10. Track mentally.</div>`;
   }
   
-  choicesGrid.style.display = 'none';
-  choicesGridSeq.style.display = 'none';
-  seqResults.style.display = 'none';
-  btnNext.style.display = 'none';
-  actionTitle.innerText = 'Watch the opponent play...';
+  $('choicesGrid').style.display = 'none';
+  $('choicesGridSeq').style.display = 'none';
+  $('seqResults').style.display = 'none';
+  $('btnNext').style.display = 'none';
+  $('actionTitle').innerText = 'Watch the opponent play...';
   
-  lastPlayedWrapper.classList.remove('active');
-  lastPlayedCardContainer.innerHTML = '';
+  $('lastPlayedWrapper').classList.remove('active');
+  $('lastPlayedCardContainer').innerHTML = '';
 
   state.isFirstRound = false;
   state.playsThisRound = 0;
@@ -1017,10 +1038,24 @@ function continueGame() {
 function endGame() {
   state.phase = 'gameover';
   cancelAnimationFrame(state.animationFrameId);
-  if (state.score > state.highScore) {
-    state.highScore = state.score;
-    try { localStorage.setItem('crHighScore', state.score); } catch(e) {}
+  
+  // Track high scores independently for normal and hardcore
+  if (state.isHardcore) {
+    $('goTitleText').innerText = "HARDCORE OVER";
+    $('goTitleText').style.color = "var(--error)";
+    if (state.score > state.highScoreHc) {
+      state.highScoreHc = state.score;
+      try { localStorage.setItem('crHighScoreHc', state.score); } catch(e) {}
+    }
+  } else {
+    $('goTitleText').innerText = "MATCH OVER";
+    $('goTitleText').style.color = "var(--text-main)";
+    if (state.score > state.highScore) {
+      state.highScore = state.score;
+      try { localStorage.setItem('crHighScore', state.score); } catch(e) {}
+    }
   }
+  
   $('goScore').innerText = state.score;
   gameScreen.classList.remove('active');
   gameOverScreen.classList.add('active');
