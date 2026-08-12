@@ -5,123 +5,205 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Elixir & Cycle Master</title>
   
-  <!-- PWA Meta Tags for Installability -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#09090b">
   <link rel="apple-touch-icon" href="icon-192.png">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
-  <!-- Link to our external stylesheet -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  
-  <!-- SCREEN: DECK SELECTION (Main Menu 1) -->
-  <div id="deckSelectScreen" class="screen active">
-    <div class="menu-top-bar">
-      <label class="theme-switch">
-        <input type="checkbox" class="theme-switch__checkbox" id="themeCheckbox">
-        <div class="theme-switch__container">
-          <div class="theme-switch__clouds"></div>
-          <div class="theme-switch__stars-container">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 55" fill="none">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M135.831 3.00688C135.055 3.85027 134.111 4.29946 133 4.35447C134.111 4.40947 135.055 4.85867 135.831 5.71123C136.607 6.55462 136.996 7.56303 136.996 8.72727C136.996 7.95722 137.172 7.25134 137.525 6.59129C137.886 5.93124 138.372 5.39954 138.98 5.00535C139.598 4.60199 140.268 4.39114 141 4.35447C139.88 4.2903 138.936 3.85027 138.16 3.00688C137.384 2.16348 136.996 1.16425 136.996 0C136.996 1.16425 136.607 2.16348 135.831 3.00688ZM31 23.3545C32.1114 23.2995 33.0551 22.8503 33.8313 22.0069C34.6075 21.1635 34.9956 20.1642 34.9956 19C34.9956 20.1642 35.3837 21.1635 36.1599 22.0069C36.9361 22.8503 37.8798 23.2903 39 23.3545C38.2679 23.3911 37.5976 23.602 36.9802 24.0053C36.3716 24.3995 35.8864 24.9312 35.5248 25.5913C35.172 26.2513 34.9956 26.9572 34.9956 27.7273C34.9956 26.563 34.6075 25.5546 33.8313 24.7112C33.0551 23.8587 32.1114 23.4095 31 23.3545ZM0 36.3545C1.11136 36.2995 2.05513 35.8503 2.83131 35.0069C3.6075 34.1635 3.99559 33.1642 3.99559 32C3.99559 33.1642 4.38368 34.1635 5.15987 35.0069C5.93605 35.8503 6.87982 36.2903 8 36.3545C7.26792 36.3911 6.59757 36.602 5.98015 37.0053C5.37155 37.3995 4.88644 37.9312 4.52481 38.5913;4.172 39.2513 3.99559 39.9572 3.99559 40.7273C3.99559 39.563 3.6075 38.5546 2.83131 37.7112C2.05513 36.8587 1.11136 36.4095 0 36.3545ZM56.8313 24.0069C56.0551 24.8503 55.1114 25.2995 54 25.3545C55.1114 25.4095 56.0551 25.8587 56.8313 26.7112C57.6075 27.5546 57.9956 28.563 57.9956 29.7273C57.9956 28.9572 58.172 28.2513 58.5248 27.5913;58.8864 26.9312 59.3716 26.3995 59.9802 26.0053;60.5976 25.602 61.2679 25.3911 62 25.3545;60.8798 25.2903 59.9361 24.8503 59.1599 24.0069;58.3837 23.1635 57.9956 22.1642 57.9956 21;57.9956 22.1642 57.6075 23.1635 56.8313 24.0069Z;81 25.3545;82.1114 25.2995 83.0551 24.8503 83.8313 24.0069;84.6075 23.1635 84.9956 22.1642 84.9956 21;84.9956 22.1642 85.3837 23.1635 86.1599 24.0069;86.9361 24.8503 87.8798 25.2903 89 25.3545;88.2679 25.3911 87.5976 25.602 86.9802 26.0053;86.3716 26.3995 85.8864 26.9312 85.5248 27.5913;85.172 28.2513 84.9956 28.9572 84.9956 29.7273;84.9956 28.563 84.6075 27.5546 83.8313 26.7112;83.0551 25.8587 82.1114 25.4095 81 25.3545Z;136 36.3545;137.111 36.2995 138.055 35.8503 138.831 35.0069;139.607 34.1635 139.996 33.1642 139.996 32;139.996 33.1642 140.384 34.1635 141.16 35.0069;141.936 35.8503 142.88 36.2903 144 36.3545;143.268 36.3911 142.598 36.602 141.98 37.0053;141.372 37.3995 140.886 37.9312 140.525 38.5913;140.172 39.2513 139.996 39.9572 139.996 40.7273;139.996 39.563 139.607 38.5546 138.831 37.7112;138.055 36.8587 137.111 36.4095 136 36.3545Z;101.831 49.0069;101.055 49.8503 100.111 50.2995 99 50.3545;100.111 50.4095 101.055 50.8587 101.831 51.7112;102.607 52.5546 102.996 53.563 102.996 54.7273;102.996 53.9572 103.172 53.2513 103.525 52.5913;103.886 51.9312 104.372 51.3995 104.98 51.0053;105.598 50.602 106.268 50.3911 107 50.3545;105.88 50.2903 104.936 49.8503 104.16 49.0069;103.384 48.1635 102.996 47.1642 102.996 46;102.996 47.1642 102.607 48.1635 101.831 49.0069Z" fill="currentColor"></path>
-            </svg>
-          </div>
-          <div class="theme-switch__circle-container">
-            <div class="theme-switch__sun-moon-container">
-              <div class="theme-switch__moon">
-                <div class="theme-switch__spot"></div>
-                <div class="theme-switch__spot"></div>
-                <div class="theme-switch__spot"></div>
+
+  <!-- ========================================== -->
+  <!-- MAIN TABS CONTAINER (Contains the 4 Nav Screens) -->
+  <!-- ========================================== -->
+  <div id="mainTabsContainer" class="active">
+    
+    <!-- TAB 1: DECK SELECTION -->
+    <div id="tab-deck" class="tab-screen active">
+      <div class="menu-top-bar">
+        <label class="theme-switch">
+          <input type="checkbox" class="theme-switch__checkbox" id="themeCheckbox">
+          <div class="theme-switch__container">
+            <div class="theme-switch__clouds"></div>
+            <div class="theme-switch__stars-container">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 55" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M135.831 3.00688C135.055 3.85027 134.111 4.29946 133 4.35447C134.111 4.40947 135.055 4.85867 135.831 5.71123C136.607 6.55462 136.996 7.56303 136.996 8.72727C136.996 7.95722 137.172 7.25134 137.525 6.59129C137.886 5.93124 138.372 5.39954 138.98 5.00535C139.598 4.60199 140.268 4.39114 141 4.35447C139.88 4.2903 138.936 3.85027 138.16 3.00688C137.384 2.16348 136.996 1.16425 136.996 0C136.996 1.16425 136.607 2.16348 135.831 3.00688ZM31 23.3545C32.1114 23.2995 33.0551 22.8503 33.8313 22.0069C34.6075 21.1635 34.9956 20.1642 34.9956 19C34.9956 20.1642 35.3837 21.1635 36.1599 22.0069C36.9361 22.8503 37.8798 23.2903 39 23.3545C38.2679 23.3911 37.5976 23.602 36.9802 24.0053C36.3716 24.3995 35.8864 24.9312 35.5248 25.5913C35.172 26.2513 34.9956 26.9572 34.9956 27.7273C34.9956 26.563 34.6075 25.5546 33.8313 24.7112C33.0551 23.8587 32.1114 23.4095 31 23.3545ZM0 36.3545C1.11136 36.2995 2.05513 35.8503 2.83131 35.0069C3.6075 34.1635 3.99559 33.1642 3.99559 32C3.99559 33.1642 4.38368 34.1635 5.15987 35.0069C5.93605 35.8503 6.87982 36.2903 8 36.3545C7.26792 36.3911 6.59757 36.602 5.98015 37.0053C5.37155 37.3995 4.88644 37.9312 4.52481 38.5913;4.172 39.2513 3.99559 39.9572 3.99559 40.7273C3.99559 39.563 3.6075 38.5546 2.83131 37.7112C2.05513 36.8587 1.11136 36.4095 0 36.3545ZM56.8313 24.0069C56.0551 24.8503 55.1114 25.2995 54 25.3545C55.1114 25.4095 56.0551 25.8587 56.8313 26.7112C57.6075 27.5546 57.9956 28.563 57.9956 29.7273C57.9956 28.9572 58.172 28.2513 58.5248 27.5913;58.8864 26.9312 59.3716 26.3995 59.9802 26.0053;60.5976 25.602 61.2679 25.3911 62 25.3545;60.8798 25.2903 59.9361 24.8503 59.1599 24.0069;58.3837 23.1635 57.9956 22.1642 57.9956 21;57.9956 22.1642 57.6075 23.1635 56.8313 24.0069Z;81 25.3545;82.1114 25.2995 83.0551 24.8503 83.8313 24.0069;84.6075 23.1635 84.9956 22.1642 84.9956 21;84.9956 22.1642 85.3837 23.1635 86.1599 24.0069;86.9361 24.8503 87.8798 25.2903 89 25.3545;88.2679 25.3911 87.5976 25.602 86.9802 26.0053;86.3716 26.3995 85.8864 26.9312 85.5248 27.5913;85.172 28.2513 84.9956 28.9572 84.9956 29.7273;84.9956 28.563 84.6075 27.5546 83.8313 26.7112;83.0551 25.8587 82.1114 25.4095 81 25.3545Z;136 36.3545;137.111 36.2995 138.055 35.8503 138.831 35.0069;139.607 34.1635 139.996 33.1642 139.996 32;139.996 33.1642 140.384 34.1635 141.16 35.0069;141.936 35.8503 142.88 36.2903 144 36.3545;143.268 36.3911 142.598 36.602 141.98 37.0053;141.372 37.3995 140.886 37.9312 140.525 38.5913;140.172 39.2513 139.996 39.9572 139.996 40.7273;139.996 39.563 139.607 38.5546 138.831 37.7112;138.055 36.8587 137.111 36.4095 136 36.3545Z;101.831 49.0069;101.055 49.8503 100.111 50.2995 99 50.3545;100.111 50.4095 101.055 50.8587 101.831 51.7112;102.607 52.5546 102.996 53.563 102.996 54.7273;102.996 53.9572 103.172 53.2513 103.525 52.5913;103.886 51.9312 104.372 51.3995 104.98 51.0053;105.598 50.602 106.268 50.3911 107 50.3545;105.88 50.2903 104.936 49.8503 104.16 49.0069;103.384 48.1635 102.996 47.1642 102.996 46;102.996 47.1642 102.607 48.1635 101.831 49.0069Z" fill="currentColor"></path></svg>
+            </div>
+            <div class="theme-switch__circle-container">
+              <div class="theme-switch__sun-moon-container">
+                <div class="theme-switch__moon">
+                  <div class="theme-switch__spot"></div>
+                  <div class="theme-switch__spot"></div>
+                  <div class="theme-switch__spot"></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </label>
-    </div>
-    <div class="menu-logo">SELECT DECK</div>
-    <div class="menu-subtitle">Choose how you want to train</div>
-    
-    <button class="mode-btn" id="btnCreateDeck">
-      <h2>Create Deck</h2>
-      <p>Build a custom 8-card deck from 114 cards.</p>
-    </button>
-    <button class="mode-btn" id="btnSelectPreset">
-      <h2>Select Deck</h2>
-      <p>Choose from 10 popular meta decks.</p>
-    </button>
-    <button class="mode-btn" id="btnRandomDeck">
-      <h2>Random Deck</h2>
-      <p>Get a random meta deck every match.</p>
-    </button>
-    
-    <!-- ELIXIR VISUALIZER BUTTON -->
-    <button class="mode-btn" id="btnElixirFlow" style="border-color: var(--elixir-1);">
-      <h2 style="color: var(--elixir-1);">Elixir Flow Visualizer</h2>
-      <p>Watch and learn the exact elixir pacing in 1x, 2x, and 3x speed.</p>
-    </button>
-  </div>
-
-  <!-- SCREEN: ELIXIR FLOW VISUALIZER -->
-  <div id="elixirFlowScreen" class="screen">
-    <div class="ios-top-bar">
-      <button class="btn-back left-action" id="btnBackFlow">← Back</button>
-      <div class="title">Visualizer</div>
-      <div style="width: 70px;"></div> <!-- Spacer -->
-    </div>
-    
-    <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%;">
+        </label>
+      </div>
+      <div class="menu-logo">DECK</div>
+      <div class="menu-subtitle" id="currentDeckLabel">Current: Random Deck</div>
       
-      <div class="flow-visualizer-box">
-        <div class="flow-drop-container">
-          <svg viewBox="0 0 24 32">
-            <path d="M12 0 C12 0 2 12 2 20 C2 26.6 6.5 32 12 32 C17.5 32 22 26.6 22 20 C22 12 12 0 12 0 Z" fill="url(#flowDropGrad)"/>
-            <defs>
-              <linearGradient id="flowDropGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#d946ef"/>
-                <stop offset="100%" stop-color="#7e22ce"/>
-              </linearGradient>
-            </defs>
-          </svg>
-          <span id="flowElixirText" class="flow-count">0</span>
-        </div>
-        
-        <div class="flow-bar-container">
-          <div class="flow-bar-fill" id="flowElixirFill"></div>
-          <div class="flow-drops">
-            <div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div>
-            <div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div>
+      <button class="mode-btn" id="btnCreateDeck">
+        <h2>Create Deck</h2>
+        <p>Build a custom 8-card deck from 114 cards.</p>
+      </button>
+      <button class="mode-btn" id="btnSelectPreset">
+        <h2>Select Deck</h2>
+        <p>Choose from 10 popular meta decks.</p>
+      </button>
+      <button class="mode-btn" id="btnRandomDeck">
+        <h2>Random Deck</h2>
+        <p>Get a random meta deck every match.</p>
+      </button>
+    </div>
+
+    <!-- TAB 2: ELIXIR VISUALIZER -->
+    <div id="tab-elixir" class="tab-screen">
+      <div class="menu-logo">ELIXIR FLOW</div>
+      <div class="menu-subtitle">Learn the exact elixir pacing</div>
+      
+      <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; margin-top: 40px;">
+        <div class="flow-visualizer-box">
+          <div class="flow-drop-container">
+            <svg viewBox="0 0 24 32">
+              <path d="M12 0 C12 0 2 12 2 20 C2 26.6 6.5 32 12 32 C17.5 32 22 26.6 22 20 C22 12 12 0 12 0 Z" fill="url(#flowDropGrad)"/>
+              <defs>
+                <linearGradient id="flowDropGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#d946ef"/>
+                  <stop offset="100%" stop-color="#7e22ce"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <span id="flowElixirText" class="flow-count">0</span>
+          </div>
+          <div class="flow-bar-container">
+            <div class="flow-bar-fill" id="flowElixirFill"></div>
+            <div class="flow-drops">
+              <div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div>
+              <div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div>
+            </div>
           </div>
         </div>
+
+        <div class="speed-toggle" id="speedToggle">
+          <div class="toggle-bg"></div>
+          <button class="toggle-btn active" id="btnSpeed1">1x Speed</button>
+          <button class="toggle-btn" id="btnSpeed2">2x Speed</button>
+          <button class="toggle-btn" id="btnSpeed3">3x Speed</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: MATCH (NORMAL) -->
+    <div id="tab-match" class="tab-screen">
+      <div class="menu-logo">MATCH</div>
+      <div class="menu-subtitle">Standard 4-Card Tracking</div>
+      
+      <div class="match-type-toggle" id="matchTypeToggle">
+        <div class="toggle-bg"></div>
+        <button class="toggle-btn active" id="btnTypeClassic">Classic</button>
+        <button class="toggle-btn" id="btnTypeRanked">Ranked (Sudden Death)</button>
       </div>
 
-      <!-- 3-WAY SPEED TOGGLE -->
-      <div class="speed-toggle" id="speedToggle">
-        <div class="toggle-bg"></div>
-        <button class="toggle-btn active" id="btnSpeed1">1x Speed</button>
-        <button class="toggle-btn" id="btnSpeed2">2x Speed</button>
-        <button class="toggle-btn" id="btnSpeed3">3x Speed</button>
+      <div class="high-score-banner" id="highScoreBanner" style="display:none;">
+        🏆 High Score: <span id="hsValue">0</span>
       </div>
       
+      <button class="mode-btn" id="btnMatchElixir">
+        <h2>Elixir Counting</h2>
+        <p>Track opponent's elixir perfectly.</p>
+      </button>
+      <button class="mode-btn" id="btnMatchHand">
+        <h2>Hand Tracking</h2>
+        <p>Predict exact card sequences.</p>
+      </button>
+      <button class="mode-btn" id="btnMatchCombined">
+        <h2>Combined Master</h2>
+        <p>Elixir + Hand tracking simultaneously.</p>
+      </button>
     </div>
+
+    <!-- TAB 4: HARDCORE -->
+    <div id="tab-hardcore" class="tab-screen">
+      <div class="menu-logo hardcore-text">HARDCORE</div>
+      <div class="menu-subtitle">Blind Tracking: Hand Slots Hidden</div>
+      
+      <div class="match-type-toggle" id="hardcoreTypeToggle">
+        <div class="toggle-bg"></div>
+        <button class="toggle-btn active" id="btnTypeClassicHc">Classic</button>
+        <button class="toggle-btn" id="btnTypeRankedHc">Ranked (Sudden Death)</button>
+      </div>
+
+      <div class="high-score-banner" id="highScoreBannerHc" style="display:none; border-color: var(--error);">
+        💀 Hardcore High Score: <span id="hsValueHc" style="color: var(--error);">0</span>
+      </div>
+      
+      <button class="mode-btn hardcore-btn" id="btnHardcoreElixir">
+        <h2>Blind Elixir Counting</h2>
+        <p>Elixir tracking with hidden opponent hand.</p>
+      </button>
+      <button class="mode-btn hardcore-btn" id="btnHardcoreHand">
+        <h2>Blind Hand Tracking</h2>
+        <p>Pure memory. No hand slots to guide you.</p>
+      </button>
+      <button class="mode-btn hardcore-btn" id="btnHardcoreCombined">
+        <h2>Ultimate Master</h2>
+        <p>The hardest challenge. Track both blind.</p>
+      </button>
+    </div>
+
+    <!-- BOTTOM NAVIGATION BAR -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="deck">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="4" y="2" width="16" height="20" rx="3"></rect>
+          <path d="M8 12h8M12 8v8"></path>
+        </svg>
+        <span>Deck</span>
+      </button>
+      <button class="nav-item" data-tab="elixir">
+        <svg viewBox="0 0 24 32" fill="currentColor">
+          <path d="M12 0 C12 0 2 12 2 20 C2 26.6 6.5 32 12 32 C17.5 32 22 26.6 22 20 C22 12 12 0 12 0 Z"/>
+        </svg>
+        <span>Elixir</span>
+      </button>
+      <button class="nav-item" data-tab="match">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M14.5 4h5v5l-10 10-5-5 10-10z"></path>
+          <path d="M9.5 9l-5 5-1.5-1.5L2 14l5 5 1.5-1.5L10 16l5-5"></path>
+        </svg>
+        <span>Match</span>
+      </button>
+      <button class="nav-item hardcore-nav" data-tab="hardcore">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M14.5 4h5v5l-10 10-5-5 10-10z"></path>
+          <path d="M9.5 9l-5 5-1.5-1.5L2 14l5 5 1.5-1.5L10 16l5-5"></path>
+        </svg>
+        <span>Hardcore</span>
+      </button>
+    </nav>
   </div>
   
+  <!-- ========================================== -->
+  <!-- FULL SCREEN OVERLAYS (Hide Tabs when active) -->
+  <!-- ========================================== -->
+
   <!-- SCREEN: CUSTOM DECK BUILDER -->
-  <div id="createDeckScreen" class="screen">
+  <div id="createDeckScreen" class="full-screen">
     <div class="ios-top-bar">
       <button class="btn-back left-action" id="btnBackCreate">← Back</button>
       <div class="title">Create Deck</div>
       <button class="sort-btn right-action" id="sortElixirBtn">By Elixir <span id="sortIcon" class="sort-icon">▲</span></button>
     </div>
     <div class="custom-deck-slots" id="customDeckSlots"></div>
-    <button class="next-btn" id="btnStartCustom" style="display:none;">Start Training</button>
+    <button class="next-btn" id="btnStartCustom" style="display:none;">Save Deck</button>
     <div class="card-pool-grid" id="cardPoolGrid"></div>
   </div>
   
   <!-- SCREEN: PRESET DECKS -->
-  <div id="presetDeckScreen" class="screen">
+  <div id="presetDeckScreen" class="full-screen">
     <div class="ios-top-bar">
       <button class="btn-back left-action" id="btnBackPreset">← Back</button>
       <div class="title">Select Deck</div>
@@ -131,43 +213,67 @@
     <div class="preset-deck-list" id="presetDeckList"></div>
   </div>
   
-  <!-- SCREEN: SELECT MODE -->
-  <div id="menuScreen" class="screen">
+  <!-- SCREEN: ARENA / GAMEPLAY -->
+  <div id="gameScreen" class="full-screen">
     <div class="ios-top-bar">
-      <button class="btn-back left-action" id="btnChangeDeck">← Change</button>
-      <div class="title" id="selectedDeckTitle">Deck</div>
+      <button class="btn-back left-action" id="btnExit">← Exit</button>
+      <div class="title" id="modeTitle">Mode</div>
       <div style="width: 70px;"></div>
     </div>
-    <div class="menu-logo">TRAINING MODE</div>
-    <div class="menu-subtitle" style="margin-bottom: 24px;">Select your training focus</div>
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span>Score</span>
+        <div id="scoreDisplay">0</div>
+      </div>
+      <div class="stat-item">
+        <span>Streak</span>
+        <div class="streak" id="streakDisplay">🔥 0</div>
+      </div>
+      <div class="stat-item">
+        <span>Time</span>
+        <div id="phaseDisplay">3:00</div>
+      </div>
+    </div>
     
-    <div class="match-type-toggle" id="matchTypeToggle">
-      <div class="toggle-bg"></div>
-      <button class="toggle-btn active" id="btnTypeClassic">Classic</button>
-      <button class="toggle-btn" id="btnTypeRanked">Ranked (Sudden Death)</button>
+    <!-- Opponent Hand (Hides in Hardcore Mode) -->
+    <div class="hand-slots-wrapper" id="handSlotsWrapper">
+      <div class="hand-label">Opponent's Hand</div>
+      <div class="cards-row" id="handRow"></div>
     </div>
 
-    <div class="high-score-banner" id="highScoreBanner" style="display:none;">
-      🏆 High Score: <span id="hsValue">0</span>
+    <!-- LAST PLAYED BLOCK (Main focus in Hardcore Mode) -->
+    <div class="last-played-wrapper" id="lastPlayedWrapper">
+      <div class="last-played-label" id="lastPlayedLabelText">LAST PLAYED</div>
+      <div id="lastPlayedCardContainer"></div>
     </div>
-    <button class="mode-btn" id="btnModeElixir">
-      <h2>Elixir Counting</h2>
-      <p>Track opponent's elixir perfectly. Continuous bar math.</p>
-    </button>
-    <button class="mode-btn" id="btnModeHand">
-      <h2>Hand Tracking</h2>
-      <p>Timeless mode. Predict exact card sequences.</p>
-    </button>
-    <button class="mode-btn" id="btnModeCombined">
-      <h2>Combined Master</h2>
-      <p>Elixir + Hand tracking simultaneously.</p>
-    </button>
+
+    <div class="gameplay-area">
+      <div class="focus-text" id="focusText">Watch the cards leave the hand</div>
+    </div>
+    <div class="bottom-ui">
+      <div id="elixirWrapper"></div>
+      <div class="action-box" id="actionBox">
+        <div class="action-title" id="actionTitle">Watch the opponent play...</div>
+        <div class="choices" id="choicesGrid"></div>
+        <div class="choices-seq" id="choicesGridSeq"></div>
+        <div class="seq-results" id="seqResults"></div>
+        <button class="next-btn" id="btnNext">Continue</button>
+      </div>
+    </div>
   </div>
   
+  <!-- SCREEN: MATCH OVER -->
+  <div id="gameOverScreen" class="full-screen">
+    <div class="go-title" id="goTitleText">MATCH OVER</div>
+    <div class="go-score" id="goScore">0</div>
+    <button class="next-btn" style="display:block;" id="btnPlayAgain">Play Again</button>
+    <button class="btn-back" style="display:block;text-align:center;margin-top:10px;border:none;" id="btnGoMenu">Main Menu</button>
+  </div>
+
   <!-- MODAL: DIFFICULTY -->
   <div class="modal-overlay" id="difficultyModal">
     <div class="modal-content">
-      <h3>Select Difficulty</h3>
+      <h3 id="diffModalTitle">Select Difficulty</h3>
       <button class="diff-btn" id="btnEasy" style="display:none;">
         <h4>Easy</h4>
         <p id="easyDesc">Hand: Predict 1 Card</p>
@@ -196,83 +302,22 @@
     <div class="modal-content">
       <h3 id="previewDeckName">Deck Name</h3>
       <div class="preview-cards-grid" id="previewCardsGrid"></div>
-      <button class="next-btn" id="btnStartPreview" style="display:block;margin-top:0">Start Training</button>
+      <button class="next-btn" id="btnStartPreview" style="display:block;margin-top:0">Select Deck</button>
     </div>
   </div>
   
   <div class="transition-overlay" id="transitionOverlay">
     <div class="transition-text" id="transitionText">DOUBLE ELIXIR</div>
   </div>
-  
-  <!-- SCREEN: ARENA / GAMEPLAY -->
-  <div id="gameScreen" class="screen">
-    <div class="ios-top-bar">
-      <button class="btn-back left-action" id="btnExit">← Exit</button>
-      <div class="title" id="modeTitle">Mode</div>
-      <div style="width: 70px;"></div>
-    </div>
-    <div class="stats-bar">
-      <div class="stat-item">
-        <span>Score</span>
-        <div id="scoreDisplay">0</div>
-      </div>
-      <div class="stat-item">
-        <span>Streak</span>
-        <div class="streak" id="streakDisplay">🔥 0</div>
-      </div>
-      <div class="stat-item">
-        <span>Time</span>
-        <div id="phaseDisplay">3:00</div>
-      </div>
-    </div>
-    <div class="hand-slots-wrapper">
-      <div class="hand-label">Opponent's Hand</div>
-      <div class="cards-row" id="handRow"></div>
-    </div>
 
-    <!-- LAST PLAYED BLOCK -->
-    <div class="last-played-wrapper" id="lastPlayedWrapper">
-      <div class="last-played-label">LAST PLAYED</div>
-      <div id="lastPlayedCardContainer"></div>
-    </div>
-
-    <div class="gameplay-area">
-      <div class="focus-text">Watch the cards leave the hand</div>
-    </div>
-    <div class="bottom-ui">
-      <div id="elixirWrapper"></div>
-      <div class="action-box" id="actionBox">
-        <div class="action-title" id="actionTitle">Watch the opponent play...</div>
-        <div class="choices" id="choicesGrid"></div>
-        <div class="choices-seq" id="choicesGridSeq"></div>
-        <div class="seq-results" id="seqResults"></div>
-        <button class="next-btn" id="btnNext">Continue</button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- SCREEN: MATCH OVER -->
-  <div id="gameOverScreen" class="screen">
-    <div class="go-title">MATCH OVER</div>
-    <div class="go-score" id="goScore">0</div>
-    <button class="next-btn" style="display:block;" id="btnPlayAgain">Play Again</button>
-    <button class="btn-back" style="display:block;text-align:center;margin-top:10px;border:none;" id="btnGoMenu">Main Menu</button>
-  </div>
-  
-  <!-- PWA Service Worker Registration -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').then(reg => {
-          console.log('Service Worker registered!');
-        }).catch(err => {
-          console.log('Service Worker registration failed:', err);
-        });
+        navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
       });
     }
   </script>
   
-  <!-- Load Scripts: SFX FIRST, then Data, then Logic -->
   <script src="sfx.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>
