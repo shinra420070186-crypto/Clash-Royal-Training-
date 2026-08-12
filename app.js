@@ -482,19 +482,15 @@ btnExit.addEventListener('click', () => {
   if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
 });
 
-// ==========================================
-// FIXED NAVIGATION ROUTING
-// ==========================================
 btnPlayAgain.addEventListener('click', () => {
   gameOverScreen.classList.remove('active');
-  startGame(); // Instantly restart without asking for difficulty again
+  startGame();
 });
 
 btnGoMenu.addEventListener('click', () => {
   gameOverScreen.classList.remove('active');
-  menuScreen.classList.add('active'); // Goes back to Mode Select, not Deck Select
+  menuScreen.classList.add('active');
 });
-// ==========================================
 
 btnNext.addEventListener('click', continueGame);
 
@@ -925,20 +921,23 @@ function submitSequenceAnswer() {
     state.streak++;
     actionTitle.innerText = 'Perfect! You got the order right.';
     btnNext.innerText = 'Continue';
+    btnNext.style.display = 'block';
   } else {
     state.streak = 0;
+    
+    // AUTOMATIC GAME OVER TRANSITION
     if (state.matchType === 'ranked') {
       state.isGameOver = true;
-      actionTitle.innerHTML = '<span style="color:var(--error);">Wrong order! Sudden Death Game Over.</span>';
-      btnNext.innerText = 'End Match';
+      actionTitle.innerHTML = '<span style="color:var(--error);">Wrong order! Sudden Death.</span>';
+      setTimeout(endGame, 1200); // Waits 1.2s to show mistake, then auto-ends
     } else {
       actionTitle.innerText = 'Wrong order! Check the comparison below.';
       btnNext.innerText = 'Continue';
+      btnNext.style.display = 'block';
     }
   }
   
   if (state.mode === 'combined') revealElixirBar();
-  btnNext.style.display = 'block';
   updateStatsUI();
 }
 
@@ -954,6 +953,7 @@ function handleAnswer(selected, correctAnswers, btn) {
     state.streak++;
     actionTitle.innerText = 'Correct!';
     btnNext.innerText = 'Continue';
+    btnNext.style.display = 'block';
   } else {
     btn.classList.add('wrong');
     state.streak = 0;
@@ -962,18 +962,19 @@ function handleAnswer(selected, correctAnswers, btn) {
       if (correctAnswers.has(val)) b.classList.add('correct');
     });
     
+    // AUTOMATIC GAME OVER TRANSITION
     if (state.matchType === 'ranked') {
       state.isGameOver = true;
-      actionTitle.innerHTML = '<span style="color:var(--error);">Wrong! Sudden Death Game Over.</span>';
-      btnNext.innerText = 'End Match';
+      actionTitle.innerHTML = '<span style="color:var(--error);">Wrong! Sudden Death.</span>';
+      setTimeout(endGame, 1200); // Waits 1.2s to show mistake, then auto-ends
     } else {
       actionTitle.innerText = 'Wrong! Correct answer highlighted.';
       btnNext.innerText = 'Continue';
+      btnNext.style.display = 'block';
     }
   }
   
   if (state.mode === 'elixir' || state.mode === 'combined') revealElixirBar();
-  btnNext.style.display = 'block';
   updateStatsUI();
 }
 
