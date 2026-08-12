@@ -96,7 +96,7 @@
       </div>
     </div>
 
-    <!-- TAB 3: MATCH (NORMAL) -->
+    <!-- TAB 3: MATCH -->
     <div id="tab-match" class="tab-screen">
       <div class="menu-logo">MATCH</div>
       <div class="menu-subtitle">Standard 4-Card Tracking</div>
@@ -125,36 +125,7 @@
       </button>
     </div>
 
-    <!-- TAB 4: HARDCORE -->
-    <div id="tab-hardcore" class="tab-screen">
-      <div class="menu-logo hardcore-text">HARDCORE</div>
-      <div class="menu-subtitle">Blind Tracking: Hand Slots Hidden</div>
-      
-      <div class="match-type-toggle" id="hardcoreTypeToggle">
-        <div class="toggle-bg"></div>
-        <button class="toggle-btn active" id="btnTypeClassicHc">Classic</button>
-        <button class="toggle-btn" id="btnTypeRankedHc">Ranked (Sudden Death)</button>
-      </div>
-
-      <div class="high-score-banner" id="highScoreBannerHc" style="display:none; border-color: var(--error);">
-        💀 Hardcore High Score: <span id="hsValueHc" style="color: var(--error);">0</span>
-      </div>
-      
-      <button class="mode-btn hardcore-btn" id="btnHardcoreElixir">
-        <h2>Blind Elixir Counting</h2>
-        <p>Elixir tracking with hidden opponent hand.</p>
-      </button>
-      <button class="mode-btn hardcore-btn" id="btnHardcoreHand">
-        <h2>Blind Hand Tracking</h2>
-        <p>Pure memory. No hand slots to guide you.</p>
-      </button>
-      <button class="mode-btn hardcore-btn" id="btnHardcoreCombined">
-        <h2>Ultimate Master</h2>
-        <p>The hardest challenge. Track both blind.</p>
-      </button>
-    </div>
-
-    <!-- BOTTOM NAVIGATION BAR -->
+    <!-- BOTTOM NAVIGATION BAR (3 Items) -->
     <nav class="bottom-nav">
       <button class="nav-item active" data-tab="deck">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -175,13 +146,6 @@
           <path d="M9.5 9l-5 5-1.5-1.5L2 14l5 5 1.5-1.5L10 16l5-5"></path>
         </svg>
         <span>Match</span>
-      </button>
-      <button class="nav-item hardcore-nav" data-tab="hardcore">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M14.5 4h5v5l-10 10-5-5 10-10z"></path>
-          <path d="M9.5 9l-5 5-1.5-1.5L2 14l5 5 1.5-1.5L10 16l5-5"></path>
-        </svg>
-        <span>Hardcore</span>
       </button>
     </nav>
   </div>
@@ -235,21 +199,12 @@
       </div>
     </div>
     
-    <!-- Opponent Hand (Normal Mode) -->
     <div class="hand-slots-wrapper" id="handSlotsWrapper">
       <div class="hand-label">Opponent's Hand</div>
       <div class="cards-row" id="handRow"></div>
     </div>
 
-    <!-- CURRENT PLAYED (Shows ONLY in Hardcore Mode) -->
-    <div class="hand-slots-wrapper" id="hcCurrentWrapper" style="display:none;">
-      <div class="hand-label">Currently Playing</div>
-      <div class="cards-row">
-        <div class="card-slot" id="hcCurrentSlot"></div>
-      </div>
-    </div>
-
-    <!-- LAST/PREVIOUS PLAYED BLOCK -->
+    <!-- LAST PLAYED BLOCK -->
     <div class="last-played-wrapper" id="lastPlayedWrapper">
       <div class="last-played-label" id="lastPlayedLabelText">LAST PLAYED</div>
       <div id="lastPlayedCardContainer"></div>
