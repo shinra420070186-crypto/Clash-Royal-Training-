@@ -118,10 +118,17 @@ body {
   padding: 85px 20px 24px 20px;
 }
 .full-screen.active { display: flex; }
-#createDeckScreen { padding-top: 65px; padding-left: 0; padding-right: 0; }
 
-/* Remove seam on top bar so it connects perfectly to deck slots */
+/* Perfect Seamless Connection for Create Deck Screen */
+#createDeckScreen { 
+  padding-top: 0; 
+  padding-left: 0; 
+  padding-right: 0; 
+}
 #createDeckScreen .ios-top-bar {
+  background: transparent; /* Top bar becomes invisible, letting the deck block below it handle the glass blur */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border-bottom: none;
   box-shadow: none;
 }
@@ -281,17 +288,17 @@ body {
 .flow-drops .drop { flex: 1; border-right: 2px solid rgba(0,0,0,0.6); }
 .flow-drops .drop:last-child { border: none; }
 
-/* === FULLY BOLTED DECK SLOTS (No more sticky glitches) === */
+/* === FULLY UNIFIED DECK SLOTS (Starts at the very top of the screen) === */
 .custom-deck-slots {
-  position: fixed; /* Bolted to the screen */
-  top: 64px; /* 1px overlap to eliminate any hairline seams */
+  position: fixed; 
+  top: 0; /* Starts at the very top of the screen */
   left: 0;
   width: 100%; 
-  z-index: 100; /* Merges directly with top bar */
+  z-index: 90; /* Sits beneath the invisible top-bar but above cards */
   display: grid; 
   grid-template-columns: repeat(4, 1fr);
   gap: 12px; 
-  padding: 16px; 
+  padding: 81px 16px 16px 16px; /* 65px (for top bar text) + 16px (normal padding) */
   margin-bottom: 0px; 
   border-radius: 0 0 24px 24px;
   background: var(--glass-bg); 
@@ -313,9 +320,9 @@ body {
 /* === FIXED CARD POOL PADDING === */
 .card-pool-grid {
   display: grid; 
-  grid-template-columns: repeat(4, 1fr); /* Forces exactly 4 columns */
+  grid-template-columns: repeat(4, 1fr); /* Locks exactly 4 columns */
   gap: 12px; padding: 16px; 
-  padding-top: 280px; /* Safely pushes cards down below the massive bolted header */
+  padding-top: 340px; /* Pushed down to comfortably clear the massive new glass block */
   padding-bottom: 120px; width: 100%;
 }
 
