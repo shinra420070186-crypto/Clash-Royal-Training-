@@ -94,7 +94,7 @@ body {
 .tab-screen {
   display: none;
   flex-direction: column;
-  padding: 60px 20px 100px 20px; /* 100px bottom for nav bar clearance */
+  padding: 60px 20px 100px 20px; 
   width: 100%;
   animation: fadeIn 0.2s ease;
 }
@@ -118,7 +118,7 @@ body {
   padding: 85px 20px 24px 20px;
 }
 .full-screen.active { display: flex; }
-#createDeckScreen { padding-top: 65px; }
+#createDeckScreen { padding-top: 65px; padding-left: 0; padding-right: 0; }
 
 /* === BOTTOM NAV BAR === */
 .bottom-nav {
@@ -173,7 +173,6 @@ body {
   transform: translateY(-2px) scale(1.1);
 }
 
-/* Color overrides for active states */
 .nav-item[data-tab="elixir"].active { color: var(--elixir-1); }
 
 /* === EXISTING UI === */
@@ -274,12 +273,15 @@ body {
 .flow-drops .drop { flex: 1; border-right: 2px solid rgba(0,0,0,0.6); }
 .flow-drops .drop:last-child { border: none; }
 
+/* === FIXED DECK SLOTS & CARD POOL (No more shrinking) === */
 .custom-deck-slots {
   position: sticky; top: 65px; z-index: 90; display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 10px; margin-bottom: 24px; padding: 16px; border-radius: 0 0 24px 24px;
+  gap: 12px; padding: 16px; margin-bottom: 24px; border-radius: 0 0 24px 24px;
   background: var(--glass-bg); backdrop-filter: blur(24px); border: 1px solid var(--glass-border); border-top: none;
 }
+
 .custom-slot {
+  width: 100%; /* Forces slots to stay expanded even when empty */
   aspect-ratio: 3/4; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(0, 0, 0, 0.3);
   border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
 }
@@ -287,9 +289,11 @@ body {
 .empty-custom-slot { color: var(--text-main); font-size: 28px; font-weight: 200; opacity: 0.3; }
 
 .card-pool-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-  gap: 12px; padding: 4px; padding-top: 260px; padding-bottom: 120px;
+  display: grid; 
+  grid-template-columns: repeat(4, 1fr); /* Forces exactly 4 columns per row */
+  gap: 12px; padding: 16px; padding-top: 260px; padding-bottom: 120px;
 }
+
 .card-pool-item { position: relative; border-radius: 6px; overflow: hidden; border: 2px solid transparent; }
 .card-pool-item img { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 4px; }
 .card-pool-item.disabled { opacity: 0.25; pointer-events: none; }
