@@ -273,15 +273,16 @@ body {
 .flow-drops .drop { flex: 1; border-right: 2px solid rgba(0,0,0,0.6); }
 .flow-drops .drop:last-child { border: none; }
 
-/* === FIXED DECK SLOTS & CARD POOL (No more shrinking) === */
+/* === FIXED DECK SLOTS (Now with width: 100% so they never shrink) === */
 .custom-deck-slots {
   position: sticky; top: 65px; z-index: 90; display: grid; grid-template-columns: repeat(4, 1fr);
   gap: 12px; padding: 16px; margin-bottom: 24px; border-radius: 0 0 24px 24px;
   background: var(--glass-bg); backdrop-filter: blur(24px); border: 1px solid var(--glass-border); border-top: none;
+  width: 100%; /* Prevents the sticky box from shrinking when empty */
 }
 
 .custom-slot {
-  width: 100%; /* Forces slots to stay expanded even when empty */
+  width: 100%; 
   aspect-ratio: 3/4; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(0, 0, 0, 0.3);
   border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
 }
@@ -291,10 +292,10 @@ body {
 .card-pool-grid {
   display: grid; 
   grid-template-columns: repeat(4, 1fr); /* Forces exactly 4 columns per row */
-  gap: 12px; padding: 16px; padding-top: 260px; padding-bottom: 120px;
+  gap: 12px; padding: 16px; padding-top: 260px; padding-bottom: 120px; width: 100%;
 }
 
-.card-pool-item { position: relative; border-radius: 6px; overflow: hidden; border: 2px solid transparent; }
+.card-pool-item { position: relative; border-radius: 6px; overflow: hidden; border: 2px solid transparent; width: 100%; }
 .card-pool-item img { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 4px; }
 .card-pool-item.disabled { opacity: 0.25; pointer-events: none; }
 .card-pool-item.selected { border-color: var(--success); transform: scale(0.95); }
