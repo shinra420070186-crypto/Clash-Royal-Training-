@@ -2,10 +2,10 @@ const state = {
   mode: null,
   difficulty: null,
   matchType: 'classic', 
-  isHardcore: false,      // NEW: Tracks if we are in Hardcore mode
+  isHardcore: false,      
   isGameOver: false,
   isFirstRound: true,
-  deckMode: 'preset',     // Default to preset so user has a deck instantly
+  deckMode: 'preset',     
   activeDeck: [],
   deck: [],
   hand: [],
@@ -14,9 +14,10 @@ const state = {
   score: 0,
   streak: 0,
   highScore: 0,
-  highScoreHc: 0,         // NEW: Hardcore high score tracking
+  highScoreHc: 0,         
   phase: 'menu',
   lastPlayedCard: null,
+  previousPlayedCard: null, // NEW: Tracks the card before the current one for Hardcore mode
   matchTime: 0,
   matchDuration: 180000,
   elixirRate: 2800,
@@ -31,7 +32,7 @@ const state = {
   sequenceSelection: [],
   sequenceTarget: 0,
   customDeckNames: [],
-  selectedPresetIndex: 0, // Default to 2.6 Hog
+  selectedPresetIndex: 0, 
   sortDirection: 'asc',
   playsThisRound: 0,
   targetPlays: 0,
@@ -46,7 +47,7 @@ let lastElixirFloor = 0;
 
 const $ = id => document.getElementById(id);
 
-// NEW: Main Navigation Setup
+// Main Navigation Setup
 const navItems = document.querySelectorAll('.nav-item');
 const tabScreens = document.querySelectorAll('.tab-screen');
 const mainTabsContainer = $('mainTabsContainer');
@@ -102,7 +103,7 @@ themeCheckbox.addEventListener('change', function() {
   }
 });
 
-// Set default deck on load so Match tabs work instantly
+// Set default deck on load
 function setDefaultDeck() {
   const defaultDeck = PRESET_DECKS[state.selectedPresetIndex];
   state.activeDeck = defaultDeck.cards.map(name => MASTER_DECK.find(c => c.name === name));
@@ -157,7 +158,7 @@ $('btnRandomDeck').addEventListener('click', () => {
   const randomIndex = Math.floor(Math.random() * PRESET_DECKS.length);
   state.activeDeck = PRESET_DECKS[randomIndex].cards.map(name => MASTER_DECK.find(c => c.name === name));
   updateDeckLabels("Random Deck");
-  switchTab('match'); // Auto switch to Match tab
+  switchTab('match'); 
 });
 
 $('btnBackCreate').addEventListener('click', () => {
@@ -383,7 +384,7 @@ function openDifficultyModal(mode, isHardcore) {
   const isHand = (mode === 'hand'), isElixir = (mode === 'elixir');
   
   $('diffModalTitle').innerText = isHardcore ? "Hardcore Difficulty" : "Select Difficulty";
-  $('diffModalTitle').style.color = isHardcore ? "var(--error)" : "inherit";
+  $('diffModalTitle').style.color = "inherit"; 
   
   $('btnEasy').style.display = isHand ? 'block' : 'none';
   $('btnElite').style.display = isHand ? 'block' : 'none';
@@ -418,6 +419,7 @@ function startGame() {
   state.score = 0;
   state.streak = 0;
   state.lastPlayedCard = null;
+  state.previousPlayedCard = null; // Resets for hardcore
   
   state.isGameOver = false;
   state.isFirstRound = true;
@@ -437,17 +439,25 @@ function startGame() {
   state.elixirRate = 2800;
   state.phase = 'playing';
   
-  // Apply Hardcore CSS class
+  // UI Setup for Normal vs Hardcore
+  $('hcCurrentSlot').innerHTML = '';
+  
   if(state.isHardcore) {
-    gameScreen.classList.add('hardcore-mode');
     $('modeTitle').innerText = "Hardcore: " + (state.mode === 'elixir' ? "Elixir" : (state.mode === 'hand' ? "Hand" : "Combined"));
-    $('modeTitle').style.color = "var(--error)";
+    $('modeTitle').style.color = "var(--text-main)";
     $('focusText').innerText = "Blind Tracking Active";
+    
+    $('handSlotsWrapper').style.display = 'none';
+    $('hcCurrentWrapper').style.display = 'block';
+    $('lastPlayedLabelText').innerText = "PREVIOUS PLAYED";
   } else {
-    gameScreen.classList.remove('hardcore-mode');
     $('modeTitle').innerText = state.mode === 'elixir' ? "Elixir Mode" : (state.mode === 'hand' ? "Hand Mode" : "Combined");
     $('modeTitle').style.color = "var(--text-main)";
     $('focusText').innerText = "Watch the cards leave the hand";
+    
+    $('handSlotsWrapper').style.display = 'block';
+    $('hcCurrentWrapper').style.display = 'none';
+    $('lastPlayedLabelText').innerText = "LAST PLAYED";
   }
 
   mainTabsContainer.classList.remove('active');
@@ -513,7 +523,6 @@ function initHandSlots() {
     slotEl.className = 'card-slot';
     slotEl.id = `slot-${i}`;
     handRow.appendChild(slotEl);
-    // If not hardcore, animate them in
     if (i < state.hand.length && !state.isHardcore) addCardToSlot(i, state.hand[i], false);
   }
 }
@@ -572,7 +581,7 @@ function gameLoop(now) {
     if (state.queue.length > 0 && state.hand.length < 4) {
       let newCard = state.queue.shift();
       state.hand.splice(state.cycleSlotIndex, 0, newCard);
-      // Only visually add to slot if NOT in hardcore
+      // Normal mode visually replaces the slot when the cycle hits
       if (!state.isHardcore) {
         addCardToSlot(state.cycleSlotIndex, newCard, true);
       }
@@ -633,18 +642,46 @@ function playOpponentCard(now) {
     
     if (state.mode !== 'hand') state.elixir -= playedCard.cost;
     
-    state.lastPlayedCard = playedCard;
-    
-    // Animate the Last Played Block (works for both modes, but crucial for Hardcore)
-    const lpContainer = $('lastPlayedCardContainer');
-    lpContainer.innerHTML = '';
-    setTimeout(() => {
-        lpContainer.innerHTML = `<img src="${playedCard.img}" class="last-played-card">`;
-        $('lastPlayedWrapper').classList.add('active');
-    }, 10);
-    
-    // Only animate out of the slot if NOT in hardcore mode
-    if (!state.isHardcore) {
+    if (state.isHardcore) {
+      // 1. Move currently viewed card to "Previous" block
+      if (state.lastPlayedCard) {
+        state.previousPlayedCard = state.lastPlayedCard;
+        const lpContainer = $('lastPlayedCardContainer');
+        lpContainer.innerHTML = '';
+        setTimeout(() => {
+            lpContainer.innerHTML = `<img src="${state.previousPlayedCard.img}" class="last-played-card">`;
+            $('lastPlayedWrapper').classList.add('active');
+        }, 10);
+      }
+      
+      state.lastPlayedCard = playedCard;
+      
+      // 2. Animate out the old card in the main view
+      const hcSlot = $('hcCurrentSlot');
+      Array.from(hcSlot.children).forEach(child => {
+          child.classList.add('played');
+          setTimeout(() => child.remove(), 500);
+      });
+      
+      // 3. Animate in the newly played card
+      const cardEl = document.createElement('div');
+      cardEl.className = 'card entering';
+      cardEl.innerHTML = `<img src="${playedCard.img}" class="card-img">`;
+      hcSlot.appendChild(cardEl);
+      
+      void cardEl.offsetWidth; 
+      setTimeout(() => cardEl.classList.remove('entering'), 50);
+
+    } else {
+      // Normal Mode
+      state.lastPlayedCard = playedCard;
+      const lpContainer = $('lastPlayedCardContainer');
+      lpContainer.innerHTML = '';
+      setTimeout(() => {
+          lpContainer.innerHTML = `<img src="${playedCard.img}" class="last-played-card">`;
+          $('lastPlayedWrapper').classList.add('active');
+      }, 10);
+      
       const slot = $(`slot-${playIdx}`);
       if (slot && slot.firstChild) slot.firstChild.classList.add('played');
     }
@@ -1017,6 +1054,9 @@ function continueGame() {
   
   $('lastPlayedWrapper').classList.remove('active');
   $('lastPlayedCardContainer').innerHTML = '';
+  $('hcCurrentSlot').innerHTML = '';
+  state.previousPlayedCard = null;
+  state.lastPlayedCard = null;
 
   state.isFirstRound = false;
   state.playsThisRound = 0;
@@ -1039,10 +1079,9 @@ function endGame() {
   state.phase = 'gameover';
   cancelAnimationFrame(state.animationFrameId);
   
-  // Track high scores independently for normal and hardcore
   if (state.isHardcore) {
     $('goTitleText').innerText = "HARDCORE OVER";
-    $('goTitleText').style.color = "var(--error)";
+    $('goTitleText').style.color = "var(--text-main)";
     if (state.score > state.highScoreHc) {
       state.highScoreHc = state.score;
       try { localStorage.setItem('crHighScoreHc', state.score); } catch(e) {}
