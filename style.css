@@ -118,16 +118,12 @@ body {
   padding: 85px 20px 24px 20px;
 }
 .full-screen.active { display: flex; }
+#createDeckScreen { padding-top: 65px; padding-left: 0; padding-right: 0; }
 
-/* Perfect Seamless Connection for Create Deck Screen */
-#createDeckScreen { 
-  padding-top: 64px; /* Pulls content up to overlap perfectly */
-  padding-left: 0; 
-  padding-right: 0; 
-}
+/* Remove seam on top bar so it connects perfectly to deck slots */
 #createDeckScreen .ios-top-bar {
-  border-bottom: none; /* Removes the seam line */
-  box-shadow: none;    /* Removes the shadow so it merges with the block below */
+  border-bottom: none;
+  box-shadow: none;
 }
 
 /* === BOTTOM NAV BAR === */
@@ -285,14 +281,25 @@ body {
 .flow-drops .drop { flex: 1; border-right: 2px solid rgba(0,0,0,0.6); }
 .flow-drops .drop:last-child { border: none; }
 
-/* === SEAMLESS FIXED DECK SLOTS === */
+/* === FULLY BOLTED DECK SLOTS (No more sticky glitches) === */
 .custom-deck-slots {
-  position: sticky; top: 64px; z-index: 90; display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 12px; padding: 16px; margin-bottom: 0px; border-radius: 0 0 24px 24px;
-  background: var(--glass-bg); backdrop-filter: blur(24px) saturate(150%); -webkit-backdrop-filter: blur(24px) saturate(150%);
-  border: 1px solid var(--glass-border); border-top: none;
-  width: 100%; /* Keeps block stable */
-  box-shadow: var(--glass-shadow); /* Shadow is only cast beneath the slots now */
+  position: fixed; /* Bolted to the screen */
+  top: 64px; /* 1px overlap to eliminate any hairline seams */
+  left: 0;
+  width: 100%; 
+  z-index: 100; /* Merges directly with top bar */
+  display: grid; 
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px; 
+  padding: 16px; 
+  margin-bottom: 0px; 
+  border-radius: 0 0 24px 24px;
+  background: var(--glass-bg); 
+  backdrop-filter: blur(24px) saturate(150%); 
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid var(--glass-border); 
+  border-top: none;
+  box-shadow: var(--glass-shadow); 
 }
 
 .custom-slot {
@@ -306,9 +313,9 @@ body {
 /* === FIXED CARD POOL PADDING === */
 .card-pool-grid {
   display: grid; 
-  grid-template-columns: repeat(4, 1fr); /* Locks row items to exactly 4 */
+  grid-template-columns: repeat(4, 1fr); /* Forces exactly 4 columns */
   gap: 12px; padding: 16px; 
-  padding-top: 24px; /* Fixed! Removed the massive gap so cards flow naturally */
+  padding-top: 280px; /* Safely pushes cards down below the massive bolted header */
   padding-bottom: 120px; width: 100%;
 }
 
@@ -454,7 +461,6 @@ body {
 #btnStartCustom { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 560px; z-index: 100; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); background: var(--success); }
 .go-title { font-size: 28px; font-weight: 800; margin-bottom: 20px; color: var(--text-main); }
 .go-score { font-size: 72px; font-weight: 900; color: var(--gold); margin-bottom: 40px; }
-
 
 /* Theme Switch CSS */
 .theme-switch { --toggle-size: 12px; --container-width: 5.625em; --container-height: 2.5em; --container-radius: 6.25em; --container-light-bg: #3D7EAE; --container-night-bg: #1D1F2C; --circle-container-diameter: 3.375em; --sun-moon-diameter: 2.125em; --sun-bg: #ECCA2F; --moon-bg: #C4C9D1; --spot-color: #959DB1; --circle-container-offset: calc((var(--circle-container-diameter) - var(--container-height)) / 2 * -1); --stars-color: #fff; --clouds-color: #F3FDFF; --back-clouds-color: #AACADF; --transition: .5s cubic-bezier(0, -0.02, 0.4, 1.25); --circle-transition: .3s cubic-bezier(0, -0.02, 0.35, 1.17); }
