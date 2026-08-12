@@ -16,7 +16,7 @@
 <body>
 
   <!-- ========================================== -->
-  <!-- MAIN TABS CONTAINER (Contains the 4 Nav Screens) -->
+  <!-- MAIN TABS CONTAINER -->
   <!-- ========================================== -->
   <div id="mainTabsContainer" class="active">
     
@@ -235,13 +235,21 @@
       </div>
     </div>
     
-    <!-- Opponent Hand (Hides in Hardcore Mode) -->
+    <!-- Opponent Hand (Normal Mode) -->
     <div class="hand-slots-wrapper" id="handSlotsWrapper">
       <div class="hand-label">Opponent's Hand</div>
       <div class="cards-row" id="handRow"></div>
     </div>
 
-    <!-- LAST PLAYED BLOCK (Main focus in Hardcore Mode) -->
+    <!-- CURRENT PLAYED (Shows ONLY in Hardcore Mode) -->
+    <div class="hand-slots-wrapper" id="hcCurrentWrapper" style="display:none;">
+      <div class="hand-label">Currently Playing</div>
+      <div class="cards-row">
+        <div class="card-slot" id="hcCurrentSlot"></div>
+      </div>
+    </div>
+
+    <!-- LAST/PREVIOUS PLAYED BLOCK -->
     <div class="last-played-wrapper" id="lastPlayedWrapper">
       <div class="last-played-label" id="lastPlayedLabelText">LAST PLAYED</div>
       <div id="lastPlayedCardContainer"></div>
