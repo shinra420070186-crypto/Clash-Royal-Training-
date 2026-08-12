@@ -2,7 +2,6 @@ const state = {
   mode: null,
   difficulty: null,
   matchType: 'classic', 
-  isHardcore: false,      
   isGameOver: false,
   isFirstRound: true,
   deckMode: 'preset',     
@@ -14,10 +13,8 @@ const state = {
   score: 0,
   streak: 0,
   highScore: 0,
-  highScoreHc: 0,         
   phase: 'menu',
   lastPlayedCard: null,
-  previousPlayedCard: null, // NEW: Tracks the card before the current one for Hardcore mode
   matchTime: 0,
   matchDuration: 180000,
   elixirRate: 2800,
@@ -65,16 +62,11 @@ const currentDeckLabel = $('currentDeckLabel');
 // Initialization
 try {
   state.highScore = parseInt(localStorage.getItem('crHighScore')) || 0;
-  state.highScoreHc = parseInt(localStorage.getItem('crHighScoreHc')) || 0;
 } catch(e) {}
 
 if (state.highScore > 0) {
   $('hsValue').innerText = state.highScore;
   $('highScoreBanner').style.display = 'block';
-}
-if (state.highScoreHc > 0) {
-  $('hsValueHc').innerText = state.highScoreHc;
-  $('highScoreBannerHc').style.display = 'block';
 }
 
 const themeCheckbox = $('themeCheckbox'),
@@ -171,31 +163,23 @@ $('btnBackPreset').addEventListener('click', () => {
   mainTabsContainer.classList.add('active');
 });
 
-// Match Type Toggles (Syncs both screens)
+// Match Type Toggles
 function setMatchType(type) {
   state.matchType = type;
   $('btnTypeClassic').classList.remove('active');
   $('btnTypeRanked').classList.remove('active');
-  $('btnTypeClassicHc').classList.remove('active');
-  $('btnTypeRankedHc').classList.remove('active');
   $('matchTypeToggle').classList.remove('ranked');
-  $('hardcoreTypeToggle').classList.remove('ranked');
 
   if(type === 'classic') {
     $('btnTypeClassic').classList.add('active');
-    $('btnTypeClassicHc').classList.add('active');
   } else {
     $('btnTypeRanked').classList.add('active');
-    $('btnTypeRankedHc').classList.add('active');
     $('matchTypeToggle').classList.add('ranked');
-    $('hardcoreTypeToggle').classList.add('ranked');
   }
 }
 
 $('btnTypeClassic').addEventListener('click', () => setMatchType('classic'));
 $('btnTypeRanked').addEventListener('click', () => setMatchType('ranked'));
-$('btnTypeClassicHc').addEventListener('click', () => setMatchType('classic'));
-$('btnTypeRankedHc').addEventListener('click', () => setMatchType('ranked'));
 
 // Elixir Flow Tab Logic
 $('btnSpeed1').addEventListener('click', () => { setFlowSpeed(1); });
@@ -362,14 +346,9 @@ function renderPresetDecks(searchTerm) {
 }
 
 // MATCH MODE LISTENERS
-$('btnMatchElixir').addEventListener('click', () => openDifficultyModal('elixir', false));
-$('btnMatchHand').addEventListener('click', () => openDifficultyModal('hand', false));
-$('btnMatchCombined').addEventListener('click', () => openDifficultyModal('combined', false));
-
-// HARDCORE MODE LISTENERS
-$('btnHardcoreElixir').addEventListener('click', () => openDifficultyModal('elixir', true));
-$('btnHardcoreHand').addEventListener('click', () => openDifficultyModal('hand', true));
-$('btnHardcoreCombined').addEventListener('click', () => openDifficultyModal('combined', true));
+$('btnMatchElixir').addEventListener('click', () => openDifficultyModal('elixir'));
+$('btnMatchHand').addEventListener('click', () => openDifficultyModal('hand'));
+$('btnMatchCombined').addEventListener('click', () => openDifficultyModal('combined'));
 
 $('btnEasy').addEventListener('click', () => selectDifficulty('easy'));
 $('btnNormal').addEventListener('click', () => selectDifficulty('normal'));
@@ -377,14 +356,12 @@ $('btnHard').addEventListener('click', () => selectDifficulty('hard'));
 $('btnElite').addEventListener('click', () => selectDifficulty('elite'));
 $('btnEndless').addEventListener('click', () => selectDifficulty('endless'));
 
-function openDifficultyModal(mode, isHardcore) {
+function openDifficultyModal(mode) {
   state.mode = mode;
-  state.isHardcore = isHardcore;
   
   const isHand = (mode === 'hand'), isElixir = (mode === 'elixir');
   
-  $('diffModalTitle').innerText = isHardcore ? "Hardcore Difficulty" : "Select Difficulty";
-  $('diffModalTitle').style.color = "inherit"; 
+  $('diffModalTitle').innerText = "Select Difficulty";
   
   $('btnEasy').style.display = isHand ? 'block' : 'none';
   $('btnElite').style.display = isHand ? 'block' : 'none';
@@ -419,7 +396,6 @@ function startGame() {
   state.score = 0;
   state.streak = 0;
   state.lastPlayedCard = null;
-  state.previousPlayedCard = null; // Resets for hardcore
   
   state.isGameOver = false;
   state.isFirstRound = true;
@@ -438,27 +414,8 @@ function startGame() {
   state.currentMultiplier = 1;
   state.elixirRate = 2800;
   state.phase = 'playing';
-  
-  // UI Setup for Normal vs Hardcore
-  $('hcCurrentSlot').innerHTML = '';
-  
-  if(state.isHardcore) {
-    $('modeTitle').innerText = "Hardcore: " + (state.mode === 'elixir' ? "Elixir" : (state.mode === 'hand' ? "Hand" : "Combined"));
-    $('modeTitle').style.color = "var(--text-main)";
-    $('focusText').innerText = "Blind Tracking Active";
-    
-    $('handSlotsWrapper').style.display = 'none';
-    $('hcCurrentWrapper').style.display = 'block';
-    $('lastPlayedLabelText').innerText = "PREVIOUS PLAYED";
-  } else {
-    $('modeTitle').innerText = state.mode === 'elixir' ? "Elixir Mode" : (state.mode === 'hand' ? "Hand Mode" : "Combined");
-    $('modeTitle').style.color = "var(--text-main)";
-    $('focusText').innerText = "Watch the cards leave the hand";
-    
-    $('handSlotsWrapper').style.display = 'block';
-    $('hcCurrentWrapper').style.display = 'none';
-    $('lastPlayedLabelText').innerText = "LAST PLAYED";
-  }
+
+  $('modeTitle').innerText = state.mode === 'elixir' ? "Elixir Mode" : (state.mode === 'hand' ? "Hand Mode" : "Combined");
 
   mainTabsContainer.classList.remove('active');
   gameOverScreen.classList.remove('active');
@@ -505,7 +462,7 @@ $('btnExit').addEventListener('click', () => {
 
 $('btnPlayAgain').addEventListener('click', () => {
   gameOverScreen.classList.remove('active');
-  startGame();
+  startGame(); 
 });
 
 $('btnGoMenu').addEventListener('click', () => {
@@ -523,7 +480,7 @@ function initHandSlots() {
     slotEl.className = 'card-slot';
     slotEl.id = `slot-${i}`;
     handRow.appendChild(slotEl);
-    if (i < state.hand.length && !state.isHardcore) addCardToSlot(i, state.hand[i], false);
+    if (i < state.hand.length) addCardToSlot(i, state.hand[i], false);
   }
 }
 
@@ -581,10 +538,7 @@ function gameLoop(now) {
     if (state.queue.length > 0 && state.hand.length < 4) {
       let newCard = state.queue.shift();
       state.hand.splice(state.cycleSlotIndex, 0, newCard);
-      // Normal mode visually replaces the slot when the cycle hits
-      if (!state.isHardcore) {
-        addCardToSlot(state.cycleSlotIndex, newCard, true);
-      }
+      addCardToSlot(state.cycleSlotIndex, newCard, true);
     }
     state.cyclePending = false;
   }
@@ -642,49 +596,16 @@ function playOpponentCard(now) {
     
     if (state.mode !== 'hand') state.elixir -= playedCard.cost;
     
-    if (state.isHardcore) {
-      // 1. Move currently viewed card to "Previous" block
-      if (state.lastPlayedCard) {
-        state.previousPlayedCard = state.lastPlayedCard;
-        const lpContainer = $('lastPlayedCardContainer');
-        lpContainer.innerHTML = '';
-        setTimeout(() => {
-            lpContainer.innerHTML = `<img src="${state.previousPlayedCard.img}" class="last-played-card">`;
-            $('lastPlayedWrapper').classList.add('active');
-        }, 10);
-      }
-      
-      state.lastPlayedCard = playedCard;
-      
-      // 2. Animate out the old card in the main view
-      const hcSlot = $('hcCurrentSlot');
-      Array.from(hcSlot.children).forEach(child => {
-          child.classList.add('played');
-          setTimeout(() => child.remove(), 500);
-      });
-      
-      // 3. Animate in the newly played card
-      const cardEl = document.createElement('div');
-      cardEl.className = 'card entering';
-      cardEl.innerHTML = `<img src="${playedCard.img}" class="card-img">`;
-      hcSlot.appendChild(cardEl);
-      
-      void cardEl.offsetWidth; 
-      setTimeout(() => cardEl.classList.remove('entering'), 50);
-
-    } else {
-      // Normal Mode
-      state.lastPlayedCard = playedCard;
-      const lpContainer = $('lastPlayedCardContainer');
-      lpContainer.innerHTML = '';
-      setTimeout(() => {
-          lpContainer.innerHTML = `<img src="${playedCard.img}" class="last-played-card">`;
-          $('lastPlayedWrapper').classList.add('active');
-      }, 10);
-      
-      const slot = $(`slot-${playIdx}`);
-      if (slot && slot.firstChild) slot.firstChild.classList.add('played');
-    }
+    state.lastPlayedCard = playedCard;
+    const lpContainer = $('lastPlayedCardContainer');
+    lpContainer.innerHTML = '';
+    setTimeout(() => {
+        lpContainer.innerHTML = `<img src="${playedCard.img}" class="last-played-card">`;
+        $('lastPlayedWrapper').classList.add('active');
+    }, 10);
+    
+    const slot = $(`slot-${playIdx}`);
+    if (slot && slot.firstChild) slot.firstChild.classList.add('played');
     
     state.hand.splice(playIdx, 1);
     state.queue.push(playedCard);
@@ -1054,9 +975,6 @@ function continueGame() {
   
   $('lastPlayedWrapper').classList.remove('active');
   $('lastPlayedCardContainer').innerHTML = '';
-  $('hcCurrentSlot').innerHTML = '';
-  state.previousPlayedCard = null;
-  state.lastPlayedCard = null;
 
   state.isFirstRound = false;
   state.playsThisRound = 0;
@@ -1079,20 +997,11 @@ function endGame() {
   state.phase = 'gameover';
   cancelAnimationFrame(state.animationFrameId);
   
-  if (state.isHardcore) {
-    $('goTitleText').innerText = "HARDCORE OVER";
-    $('goTitleText').style.color = "var(--text-main)";
-    if (state.score > state.highScoreHc) {
-      state.highScoreHc = state.score;
-      try { localStorage.setItem('crHighScoreHc', state.score); } catch(e) {}
-    }
-  } else {
-    $('goTitleText').innerText = "MATCH OVER";
-    $('goTitleText').style.color = "var(--text-main)";
-    if (state.score > state.highScore) {
-      state.highScore = state.score;
-      try { localStorage.setItem('crHighScore', state.score); } catch(e) {}
-    }
+  $('goTitleText').innerText = "MATCH OVER";
+  $('goTitleText').style.color = "var(--text-main)";
+  if (state.score > state.highScore) {
+    state.highScore = state.score;
+    try { localStorage.setItem('crHighScore', state.score); } catch(e) {}
   }
   
   $('goScore').innerText = state.score;
