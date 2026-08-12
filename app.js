@@ -207,12 +207,9 @@ function flowLoop(now) {
   } else {
     let currentFloor = Math.floor(flowElixir);
     if (currentFloor > lastElixirFloor && currentFloor <= 10) {
-      
-      // Calls the new ticking engine from sfx.js!
       if(typeof playElixirTick === 'function') {
         playElixirTick();
       }
-      
       lastElixirFloor = currentFloor;
       $('flowElixirText').classList.add('pulse');
       setTimeout(() => $('flowElixirText').classList.remove('pulse'), 150);
@@ -275,6 +272,35 @@ btnStartCustom.addEventListener('click', () => {
   createDeckScreen.classList.remove('active');
   menuScreen.classList.add('active');
 });
+
+// ==========================================
+// RESTORED MODAL LISTENERS (Fixes your bugs!)
+// ==========================================
+deckPreviewModal.addEventListener('click', (e) => {
+  // If the user clicks the blurry background, close it
+  if (e.target === deckPreviewModal) {
+    deckPreviewModal.classList.remove('active');
+  }
+});
+
+difficultyModal.addEventListener('click', (e) => {
+  // If the user clicks the blurry background, close it
+  if (e.target === difficultyModal) {
+    difficultyModal.classList.remove('active');
+  }
+});
+
+btnStartPreview.addEventListener('click', () => {
+  // Start the preset deck game
+  deckPreviewModal.classList.remove('active');
+  state.deckMode = 'preset';
+  const selectedDeck = PRESET_DECKS[state.selectedPresetIndex];
+  state.activeDeck = selectedDeck.cards.map(name => MASTER_DECK.find(c => c.name === name));
+  $('selectedDeckTitle').innerText = selectedDeck.name;
+  presetDeckScreen.classList.remove('active');
+  menuScreen.classList.add('active');
+});
+// ==========================================
 
 function showPresetPreview(index) {
   state.selectedPresetIndex = index;
