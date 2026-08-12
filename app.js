@@ -273,25 +273,19 @@ btnStartCustom.addEventListener('click', () => {
   menuScreen.classList.add('active');
 });
 
-// ==========================================
-// RESTORED MODAL LISTENERS (Fixes your bugs!)
-// ==========================================
 deckPreviewModal.addEventListener('click', (e) => {
-  // If the user clicks the blurry background, close it
   if (e.target === deckPreviewModal) {
     deckPreviewModal.classList.remove('active');
   }
 });
 
 difficultyModal.addEventListener('click', (e) => {
-  // If the user clicks the blurry background, close it
   if (e.target === difficultyModal) {
     difficultyModal.classList.remove('active');
   }
 });
 
 btnStartPreview.addEventListener('click', () => {
-  // Start the preset deck game
   deckPreviewModal.classList.remove('active');
   state.deckMode = 'preset';
   const selectedDeck = PRESET_DECKS[state.selectedPresetIndex];
@@ -300,7 +294,6 @@ btnStartPreview.addEventListener('click', () => {
   presetDeckScreen.classList.remove('active');
   menuScreen.classList.add('active');
 });
-// ==========================================
 
 function showPresetPreview(index) {
   state.selectedPresetIndex = index;
@@ -489,15 +482,19 @@ btnExit.addEventListener('click', () => {
   if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
 });
 
+// ==========================================
+// FIXED NAVIGATION ROUTING
+// ==========================================
 btnPlayAgain.addEventListener('click', () => {
   gameOverScreen.classList.remove('active');
-  openDifficultyModal(state.mode);
+  startGame(); // Instantly restart without asking for difficulty again
 });
 
 btnGoMenu.addEventListener('click', () => {
   gameOverScreen.classList.remove('active');
-  deckSelectScreen.classList.add('active');
+  menuScreen.classList.add('active'); // Goes back to Mode Select, not Deck Select
 });
+// ==========================================
 
 btnNext.addEventListener('click', continueGame);
 
