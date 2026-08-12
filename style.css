@@ -118,7 +118,17 @@ body {
   padding: 85px 20px 24px 20px;
 }
 .full-screen.active { display: flex; }
-#createDeckScreen { padding-top: 65px; padding-left: 0; padding-right: 0; }
+
+/* Perfect Seamless Connection for Create Deck Screen */
+#createDeckScreen { 
+  padding-top: 64px; /* Pulls content up to overlap perfectly */
+  padding-left: 0; 
+  padding-right: 0; 
+}
+#createDeckScreen .ios-top-bar {
+  border-bottom: none; /* Removes the seam line */
+  box-shadow: none;    /* Removes the shadow so it merges with the block below */
+}
 
 /* === BOTTOM NAV BAR === */
 .bottom-nav {
@@ -182,8 +192,10 @@ body {
   display: flex; align-items: center; padding: 0 16px;
   background: var(--glass-bg);
   backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
   z-index: 100;
   border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 .ios-top-bar .title {
   position: absolute; left: 50%; top: 50%;
@@ -273,12 +285,14 @@ body {
 .flow-drops .drop { flex: 1; border-right: 2px solid rgba(0,0,0,0.6); }
 .flow-drops .drop:last-child { border: none; }
 
-/* === FIXED DECK SLOTS (Now with width: 100% so they never shrink) === */
+/* === SEAMLESS FIXED DECK SLOTS === */
 .custom-deck-slots {
-  position: sticky; top: 65px; z-index: 90; display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 12px; padding: 16px; margin-bottom: 24px; border-radius: 0 0 24px 24px;
-  background: var(--glass-bg); backdrop-filter: blur(24px); border: 1px solid var(--glass-border); border-top: none;
-  width: 100%; /* Prevents the sticky box from shrinking when empty */
+  position: sticky; top: 64px; z-index: 90; display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 12px; padding: 16px; margin-bottom: 0px; border-radius: 0 0 24px 24px;
+  background: var(--glass-bg); backdrop-filter: blur(24px) saturate(150%); -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid var(--glass-border); border-top: none;
+  width: 100%; /* Keeps block stable */
+  box-shadow: var(--glass-shadow); /* Shadow is only cast beneath the slots now */
 }
 
 .custom-slot {
@@ -289,10 +303,13 @@ body {
 .custom-slot img { width: 100%; height: 100%; object-fit: cover; }
 .empty-custom-slot { color: var(--text-main); font-size: 28px; font-weight: 200; opacity: 0.3; }
 
+/* === FIXED CARD POOL PADDING === */
 .card-pool-grid {
   display: grid; 
-  grid-template-columns: repeat(4, 1fr); /* Forces exactly 4 columns per row */
-  gap: 12px; padding: 16px; padding-top: 260px; padding-bottom: 120px; width: 100%;
+  grid-template-columns: repeat(4, 1fr); /* Locks row items to exactly 4 */
+  gap: 12px; padding: 16px; 
+  padding-top: 24px; /* Fixed! Removed the massive gap so cards flow naturally */
+  padding-bottom: 120px; width: 100%;
 }
 
 .card-pool-item { position: relative; border-radius: 6px; overflow: hidden; border: 2px solid transparent; width: 100%; }
