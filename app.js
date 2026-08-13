@@ -24,6 +24,7 @@ const state = {
   cyclePending: false,
   nextCycleTime: 0,
   cycleSlotIndex: -1,
+  pendingCycleSlot: undefined, // NEW: Holds the empty slot index for Hand Tracking mode
   lastFrameTime: 0,
   animationFrameId: null,
   sequenceSelection: [],
@@ -127,7 +128,6 @@ function switchTab(tabId) {
 navItems.forEach(nav => {
   nav.addEventListener('click', () => switchTab(nav.getAttribute('data-tab')));
 });
-// ==========================================
 
 // Deck Tab Buttons
 $('btnCreateDeck').addEventListener('click', () => {
@@ -396,6 +396,7 @@ function startGame() {
   state.score = 0;
   state.streak = 0;
   state.lastPlayedCard = null;
+  state.pendingCycleSlot = undefined; // Resets missing slot
   
   state.isGameOver = false;
   state.isFirstRound = true;
@@ -609,13 +610,21 @@ function playOpponentCard(now) {
     
     state.hand.splice(playIdx, 1);
     state.queue.push(playedCard);
-    state.cyclePending = true;
-    state.nextCycleTime = now + 350;
-    state.cycleSlotIndex = playIdx;
     
     state.playsThisRound++;
     
     if (state.playsThisRound >= state.targetPlays) {
+      
+      // NEW: Delay the physical cycle if in Hand Tracking mode
+      if (state.mode === 'hand') {
+        state.cyclePending = false;
+        state.pendingCycleSlot = playIdx; // Mark the slot to stay empty visually
+      } else {
+        state.cyclePending = true;
+        state.nextCycleTime = now + 350;
+        state.cycleSlotIndex = playIdx;
+      }
+      
       state.nextPlayTime = Infinity; 
       setTimeout(() => {
         if (state.phase === 'playing') {
@@ -625,6 +634,10 @@ function playOpponentCard(now) {
       }, 800 + Math.random() * 600);
       return;
     }
+    
+    state.cyclePending = true;
+    state.nextCycleTime = now + 350;
+    state.cycleSlotIndex = playIdx;
     
     if (state.mode === 'hand') {
       state.nextPlayTime = now + 1800 + Math.random() * 1500;
@@ -814,13 +827,20 @@ function triggerQuestion() {
     else if (state.difficulty === 'hard') count = 3;
     else if (state.difficulty === 'elite') count = 4;
     
-    if (state.queue.length < count) count = state.queue.length;
+    // NEW: Exclude the last played card from being a selectable option in Hand Mode
+    let availableCards = state.queue;
+    if (state.mode === 'hand' && state.lastPlayedCard) {
+        availableCards = state.queue.filter(c => c.name !== state.lastPlayedCard.name);
+    }
+    
+    if (availableCards.length < count) count = availableCards.length;
     state.sequenceTarget = count;
     state.sequenceSelection = [];
     
     $('actionTitle').innerText = `Select the next ${count} card${count > 1 ? 's' : ''} in order:`;
     $('choicesGridSeq').style.display = 'grid';
-    let shuffledQueue = [...state.queue].sort(() => Math.random() - 0.5);
+    
+    let shuffledQueue = [...availableCards].sort(() => Math.random() - 0.5);
     shuffledQueue.forEach(opt => {
       let btn = document.createElement('button');
       btn.className = 'choice-btn-seq';
@@ -961,6 +981,14 @@ function continueGame() {
   if (state.isGameOver) {
     endGame();
     return;
+  }
+
+  // NEW: Fill the empty slot now that the question has been answered!
+  if (state.mode === 'hand' && state.pendingCycleSlot !== undefined) {
+    let newCard = state.queue.shift();
+    state.hand.splice(state.pendingCycleSlot, 0, newCard);
+    addCardToSlot(state.pendingCycleSlot, newCard, true);
+    state.pendingCycleSlot = undefined;
   }
 
   if (state.mode === 'elixir' || state.mode === 'combined') {
