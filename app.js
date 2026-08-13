@@ -1,1038 +1,530 @@
-const state = {
-  mode: null,
-  difficulty: null,
-  matchType: 'classic', 
-  isGameOver: false,
-  isFirstRound: true,
-  deckMode: 'preset',     
-  activeDeck: [],
-  deck: [],
-  hand: [],
-  queue: [],
-  elixir: 10,
-  score: 0,
-  streak: 0,
-  highScore: 0,
-  phase: 'menu',
-  lastPlayedCard: null,
-  matchTime: 0,
-  matchDuration: 180000,
-  elixirRate: 2800,
-  currentMultiplier: 1,
-  elixirProgress: 0,
-  nextPlayTime: 0,
-  cyclePending: false,
-  nextCycleTime: 0,
-  cycleSlotIndex: -1,
-  pendingCycleSlot: undefined, // NEW: Holds the empty slot index for Hand Tracking mode
-  lastFrameTime: 0,
-  animationFrameId: null,
-  sequenceSelection: [],
-  sequenceTarget: 0,
-  customDeckNames: [],
-  selectedPresetIndex: 0, 
-  sortDirection: 'asc',
-  playsThisRound: 0,
-  targetPlays: 0,
-  botTargetHold: 0
-};
-
-let flowElixir = 0;
-let flowMultiplier = 1;
-let flowLastTime = 0;
-let flowAnimId = null;
-let lastElixirFloor = 0;
-
-const $ = id => document.getElementById(id);
-
-// Main Navigation Setup
-const navItems = document.querySelectorAll('.nav-item');
-const tabScreens = document.querySelectorAll('.tab-screen');
-const mainTabsContainer = $('mainTabsContainer');
-
-// Full Screens
-const createDeckScreen = $('createDeckScreen'),
-      presetDeckScreen = $('presetDeckScreen'),
-      gameScreen = $('gameScreen'),
-      gameOverScreen = $('gameOverScreen'),
-      difficultyModal = $('difficultyModal'),
-      deckPreviewModal = $('deckPreviewModal');
-
-const currentDeckLabel = $('currentDeckLabel');
-
-// Initialization
-try {
-  state.highScore = parseInt(localStorage.getItem('crHighScore')) || 0;
-} catch(e) {}
-
-if (state.highScore > 0) {
-  $('hsValue').innerText = state.highScore;
-  $('highScoreBanner').style.display = 'block';
+:root {
+  --bg-main: #09090b;
+  --bg-card: #18181b;
+  --bg-card-light: #27272a;
+  --border: #2a2a2e;
+  --text-main: #fafafa;
+  --text-dim: #71717a;
+  --elixir-1: #d946ef;
+  --elixir-2: #7e22ce;
+  --success: #22c55e;
+  --error: #ef4444;
+  --gold: #facc15;
+  --modal-bg: rgba(0,0,0,0.7);
+  --card-border: rgba(255,255,255,0.05);
+  --elixir-empty: rgba(255,255,255,0.05);
+  --seq-correct-bg: rgba(34,197,94,0.05);
+  --seq-correct-border: rgba(34,197,94,0.3);
+  --seq-wrong-bg: rgba(239,68,68,0.05);
+  --seq-wrong-border: rgba(239,68,68,0.3);
+  
+  --glass-bg: rgba(24, 24, 27, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+  --nav-active: #ffffff;
 }
 
-const themeCheckbox = $('themeCheckbox'),
-      htmlElement = document.documentElement;
-      
-try {
-  const savedTheme = localStorage.getItem('crTheme') || 'dark';
-  if (savedTheme === 'light') {
-    htmlElement.classList.add('light-mode');
-    themeCheckbox.checked = false;
-  } else {
-    htmlElement.classList.remove('light-mode');
-    themeCheckbox.checked = true;
-  }
-} catch(e) {
-  themeCheckbox.checked = true;
+:root.light-mode {
+  --bg-main: #F4F4F5;
+  --bg-card: #FFFFFF;
+  --bg-card-light: #F9FAFB;
+  --border: #E5E7EB;
+  --text-main: #111827;
+  --text-dim: #6B7280;
+  --elixir-1: #d946ef;
+  --elixir-2: #7e22ce;
+  --success: #16A34A;
+  --error: #DC2626;
+  --gold: #D97706;
+  --modal-bg: rgba(0,0,0,0.5);
+  --card-border: rgba(0,0,0,0.05);
+  --elixir-empty: rgba(0,0,0,0.05);
+  --seq-correct-bg: rgba(22,163,74,0.1);
+  --seq-correct-border: rgba(22,163,74,0.4);
+  --seq-wrong-bg: rgba(220,38,38,0.1);
+  --seq-wrong-border: rgba(220,38,38,0.4);
+  
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-shadow: 0 12px 30px rgba(31, 38, 135, 0.1);
+  --nav-active: #111827;
 }
 
-themeCheckbox.addEventListener('change', function() {
-  if (this.checked) {
-    htmlElement.classList.remove('light-mode');
-    try { localStorage.setItem('crTheme', 'dark'); } catch(e) {}
-  } else {
-    htmlElement.classList.add('light-mode');
-    try { localStorage.setItem('crTheme', 'light'); } catch(e) {}
-  }
-});
-
-// Set default deck on load
-function setDefaultDeck() {
-  const defaultDeck = PRESET_DECKS[state.selectedPresetIndex];
-  state.activeDeck = defaultDeck.cards.map(name => MASTER_DECK.find(c => c.name === name));
-  updateDeckLabels(defaultDeck.name);
-}
-setDefaultDeck();
-
-function updateDeckLabels(name) {
-  currentDeckLabel.innerText = "Current: " + name;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-// ==========================================
-// BOTTOM NAVIGATION LOGIC
-// ==========================================
-function switchTab(tabId) {
-  navItems.forEach(nav => nav.classList.remove('active'));
-  tabScreens.forEach(tab => tab.classList.remove('active'));
-
-  document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
-  document.getElementById(`tab-${tabId}`).classList.add('active');
-
-  if(tabId === 'elixir') {
-     startFlowVisualizer();
-  } else {
-     if(flowAnimId) cancelAnimationFrame(flowAnimId);
-  }
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(217, 70, 239, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(126, 34, 206, 0.05) 0%, transparent 40%);
+  background-attachment: fixed;
 }
 
-navItems.forEach(nav => {
-  nav.addEventListener('click', () => switchTab(nav.getAttribute('data-tab')));
-});
-
-// Deck Tab Buttons
-$('btnCreateDeck').addEventListener('click', () => {
-  state.customDeckNames = [];
-  renderCustomDeckSlots();
-  renderCardPool();
-  mainTabsContainer.classList.remove('active');
-  createDeckScreen.classList.add('active');
-});
-
-$('btnSelectPreset').addEventListener('click', () => {
-  state.selectedPresetIndex = -1;
-  renderPresetDecks('');
-  mainTabsContainer.classList.remove('active');
-  presetDeckScreen.classList.add('active');
-});
-
-$('btnRandomDeck').addEventListener('click', () => {
-  state.deckMode = 'random';
-  const randomIndex = Math.floor(Math.random() * PRESET_DECKS.length);
-  state.activeDeck = PRESET_DECKS[randomIndex].cards.map(name => MASTER_DECK.find(c => c.name === name));
-  updateDeckLabels("Random Deck");
-  switchTab('match'); 
-});
-
-$('btnBackCreate').addEventListener('click', () => {
-  createDeckScreen.classList.remove('active');
-  mainTabsContainer.classList.add('active');
-});
-
-$('btnBackPreset').addEventListener('click', () => {
-  presetDeckScreen.classList.remove('active');
-  mainTabsContainer.classList.add('active');
-});
-
-// Match Type Toggles
-function setMatchType(type) {
-  state.matchType = type;
-  $('btnTypeClassic').classList.remove('active');
-  $('btnTypeRanked').classList.remove('active');
-  $('matchTypeToggle').classList.remove('ranked');
-
-  if(type === 'classic') {
-    $('btnTypeClassic').classList.add('active');
-  } else {
-    $('btnTypeRanked').classList.add('active');
-    $('matchTypeToggle').classList.add('ranked');
-  }
+.light-mode body {
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(217, 70, 239, 0.02) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(126, 34, 206, 0.02) 0%, transparent 40%);
 }
 
-$('btnTypeClassic').addEventListener('click', () => setMatchType('classic'));
-$('btnTypeRanked').addEventListener('click', () => setMatchType('ranked'));
+/* === TAB SYSTEM === */
+#mainTabsContainer {
+  display: none;
+  width: 100%;
+  max-width: 600px;
+  flex-direction: column;
+  min-height: 100vh;
+}
+#mainTabsContainer.active { display: flex; }
 
-// Elixir Flow Tab Logic
-$('btnSpeed1').addEventListener('click', () => { setFlowSpeed(1); });
-$('btnSpeed2').addEventListener('click', () => { setFlowSpeed(2); });
-$('btnSpeed3').addEventListener('click', () => { setFlowSpeed(3); });
+.tab-screen {
+  display: none;
+  flex-direction: column;
+  padding: 60px 20px 100px 20px; 
+  width: 100%;
+  animation: fadeIn 0.2s ease;
+}
+.tab-screen.active { display: flex; }
 
-function setFlowSpeed(mult) {
-  flowMultiplier = mult;
-  $('btnSpeed1').classList.remove('active');
-  $('btnSpeed2').classList.remove('active');
-  $('btnSpeed3').classList.remove('active');
-  $(`btnSpeed${mult}`).classList.add('active');
-  $('speedToggle').className = `speed-toggle x${mult}`;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-function startFlowVisualizer() {
-  flowElixir = 0;
-  lastElixirFloor = 0;
-  setFlowSpeed(1);
-  flowLastTime = performance.now();
-  if(flowAnimId) cancelAnimationFrame(flowAnimId);
-  flowAnimId = requestAnimationFrame(flowLoop);
+/* === FULL SCREENS (Overlays Tabs) === */
+.full-screen {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: var(--bg-main);
+  z-index: 200;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  padding: 85px 20px 24px 20px;
+}
+.full-screen.active { display: flex; }
+
+#createDeckScreen { 
+  padding-top: 0; 
+  padding-left: 0; 
+  padding-right: 0; 
+}
+#createDeckScreen .ios-top-bar {
+  background: transparent; 
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom: none;
+  box-shadow: none;
 }
 
-function flowLoop(now) {
-  let delta = now - flowLastTime;
-  flowLastTime = now;
-  
-  let rate = 2800; 
-  if (flowMultiplier === 2) rate = 1400;
-  if (flowMultiplier === 3) rate = 933;
-  
-  let addedElixir = delta / rate;
-  flowElixir += addedElixir;
-  
-  if (flowElixir >= 10.1) {
-    flowElixir = 0; 
-    lastElixirFloor = 0;
-  } else {
-    let currentFloor = Math.floor(flowElixir);
-    if (currentFloor > lastElixirFloor && currentFloor <= 10) {
-      if(typeof playElixirTick === 'function') playElixirTick();
-      lastElixirFloor = currentFloor;
-      $('flowElixirText').classList.add('pulse');
-      setTimeout(() => $('flowElixirText').classList.remove('pulse'), 150);
-    }
-  }
-  $('flowElixirText').innerText = Math.min(10, Math.floor(flowElixir));
-  $('flowElixirFill').style.width = (Math.min(10, flowElixir) * 10) + '%';
-  flowAnimId = requestAnimationFrame(flowLoop);
+/* === PREMIUM GLASSMORPHISM BOTTOM NAV BAR === */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  background: rgba(24, 24, 27, 0.45); 
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 -10px 30px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: 15px; 
+  z-index: 150;
 }
 
-// Deck Building Logic
-$('deckSearch').addEventListener('input', (e) => renderPresetDecks(e.target.value));
-$('sortElixirBtn').addEventListener('click', () => {
-  if (state.sortDirection === 'asc') {
-    state.sortDirection = 'desc';
-    $('sortIcon').innerText = '▼';
-  } else {
-    state.sortDirection = 'asc';
-    $('sortIcon').innerText = '▲';
-  }
-  renderCardPool();
-});
-
-$('btnStartCustom').addEventListener('click', () => {
-  state.deckMode = 'custom';
-  state.activeDeck = state.customDeckNames.map(name => MASTER_DECK.find(c => c.name === name));
-  updateDeckLabels("Custom Deck");
-  createDeckScreen.classList.remove('active');
-  mainTabsContainer.classList.add('active');
-  switchTab('match');
-});
-
-deckPreviewModal.addEventListener('click', (e) => {
-  if (e.target === deckPreviewModal) deckPreviewModal.classList.remove('active');
-});
-
-difficultyModal.addEventListener('click', (e) => {
-  if (e.target === difficultyModal) difficultyModal.classList.remove('active');
-});
-
-$('btnStartPreview').addEventListener('click', () => {
-  deckPreviewModal.classList.remove('active');
-  state.deckMode = 'preset';
-  const selectedDeck = PRESET_DECKS[state.selectedPresetIndex];
-  state.activeDeck = selectedDeck.cards.map(name => MASTER_DECK.find(c => c.name === name));
-  updateDeckLabels(selectedDeck.name);
-  presetDeckScreen.classList.remove('active');
-  mainTabsContainer.classList.add('active');
-  switchTab('match');
-});
-
-function showPresetPreview(index) {
-  state.selectedPresetIndex = index;
-  const deck = PRESET_DECKS[index];
-  $('previewDeckName').innerText = deck.name;
-  $('previewCardsGrid').innerHTML = '';
-  deck.cards.forEach(cardName => {
-    const card = MASTER_DECK.find(c => c.name === cardName);
-    if (card) {
-      const img = document.createElement('img');
-      img.src = card.img;
-      $('previewCardsGrid').appendChild(img);
-    }
-  });
-  deckPreviewModal.classList.add('active');
+.light-mode .bottom-nav {
+  background: rgba(255, 255, 255, 0.45);
+  border-top: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 
+    0 -10px 30px rgba(0, 0, 0, 0.05), 
+    inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
-function renderCardPool() {
-  $('cardPoolGrid').innerHTML = '';
-  let pool = [...MASTER_DECK].sort((a, b) => state.sortDirection === 'asc' ? (a.cost - b.cost || a.name.localeCompare(b.name)) : (b.cost - a.cost || b.name.localeCompare(a.name)));
-  pool.forEach(card => {
-    const item = document.createElement('div');
-    item.className = 'card-pool-item';
-    if (state.customDeckNames.includes(card.name)) item.classList.add('selected');
-    if (state.customDeckNames.length >= 8 && !state.customDeckNames.includes(card.name)) item.classList.add('disabled');
-    item.innerHTML = `<img src="${card.img}">`;
-    item.addEventListener('click', () => toggleCustomCard(card.name));
-    $('cardPoolGrid').appendChild(item);
-  });
+.nav-item {
+  background: transparent;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  cursor: pointer;
+  width: 33.33%;
+  transition: all 0.2s ease;
 }
 
-function toggleCustomCard(cardName) {
-  const index = state.customDeckNames.indexOf(cardName);
-  if (index > -1) state.customDeckNames.splice(index, 1);
-  else if (state.customDeckNames.length < 8) state.customDeckNames.push(cardName);
-  renderCustomDeckSlots();
-  renderCardPool();
+.nav-item svg {
+  width: 26px;
+  height: 26px;
+  margin-bottom: 4px;
+  transition: all 0.2s ease;
 }
 
-function renderCustomDeckSlots() {
-  $('customDeckSlots').innerHTML = '';
-  for (let i = 0; i < 8; i++) {
-    const slot = document.createElement('div');
-    slot.className = 'custom-slot';
-    if (state.customDeckNames[i]) {
-      const card = MASTER_DECK.find(c => c.name === state.customDeckNames[i]);
-      slot.innerHTML = `<img src="${card.img}">`;
-      slot.addEventListener('click', () => toggleCustomCard(card.name));
-    } else {
-      slot.innerHTML = `<div class="empty-custom-slot">+</div>`;
-    }
-    $('customDeckSlots').appendChild(slot);
-  }
-  $('btnStartCustom').style.display = state.customDeckNames.length === 8 ? 'block' : 'none';
+.nav-item span {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
-function renderPresetDecks(searchTerm) {
-  $('presetDeckList').innerHTML = '';
-  const filtered = PRESET_DECKS.filter(deck => deck.name.toLowerCase().includes(searchTerm.toLowerCase()));
-  filtered.forEach((deck, index) => {
-    const item = document.createElement('div');
-    item.className = 'preset-deck-item';
-    let cardsHtml = '';
-    deck.cards.forEach(cardName => {
-      const card = MASTER_DECK.find(c => c.name === cardName);
-      if (card) cardsHtml += `<img src="${card.img}">`;
-    });
-    item.innerHTML = `<div class="preset-info"><h3>${deck.name}</h3><div class="preset-cards">${cardsHtml}</div></div>`;
-    item.addEventListener('click', () => showPresetPreview(index));
-    $('presetDeckList').appendChild(item);
-  });
+.nav-item.active {
+  color: var(--nav-active);
 }
 
-// MATCH MODE LISTENERS
-$('btnMatchElixir').addEventListener('click', () => openDifficultyModal('elixir'));
-$('btnMatchHand').addEventListener('click', () => openDifficultyModal('hand'));
-$('btnMatchCombined').addEventListener('click', () => openDifficultyModal('combined'));
-
-$('btnEasy').addEventListener('click', () => selectDifficulty('easy'));
-$('btnNormal').addEventListener('click', () => selectDifficulty('normal'));
-$('btnHard').addEventListener('click', () => selectDifficulty('hard'));
-$('btnElite').addEventListener('click', () => selectDifficulty('elite'));
-$('btnEndless').addEventListener('click', () => selectDifficulty('endless'));
-
-function openDifficultyModal(mode) {
-  state.mode = mode;
-  
-  const isHand = (mode === 'hand'), isElixir = (mode === 'elixir');
-  
-  $('diffModalTitle').innerText = "Select Difficulty";
-  
-  $('btnEasy').style.display = isHand ? 'block' : 'none';
-  $('btnElite').style.display = isHand ? 'block' : 'none';
-  $('btnEndless').style.display = isElixir ? 'block' : 'none';
-  
-  if (isHand) {
-    $('normalDesc').innerHTML = "Predict 2 Cards Sequence";
-    $('hardDesc').innerHTML = "Predict 3 Cards Sequence";
-  } else {
-    $('normalDesc').innerHTML = "3 Minutes (1x → 2x)";
-    $('hardDesc').innerHTML = "4 Minutes (1x → 2x → 3x)";
-  }
-  difficultyModal.classList.add('active');
+.nav-item.active svg {
+  transform: translateY(-2px) scale(1.1);
 }
 
-function selectDifficulty(diff) {
-  state.difficulty = diff;
-  difficultyModal.classList.remove('active');
-  startGame();
+.nav-item[data-tab="elixir"].active { color: var(--elixir-1); }
+
+/* === EXISTING UI === */
+.ios-top-bar {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 65px; 
+  display: flex; align-items: center; padding: 0 16px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  z-index: 100;
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+.ios-top-bar .title {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--text-main); white-space: nowrap;
+}
+.ios-top-bar .left-action { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); }
+.ios-top-bar .right-action { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); }
+
+.btn-back {
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  color: var(--text-main); padding: 8px 14px; border-radius: 20px;
+  cursor: pointer; font-weight: 600; font-size: 13px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.btn-back:active { background: var(--bg-card-light); }
+
+.sort-btn {
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  color: var(--text-main); padding: 8px 14px; border-radius: 20px;
+  font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;
+}
+.sort-icon { font-size: 10px; opacity: 0.6; }
+
+.match-type-toggle {
+  display: flex; position: relative; background: var(--glass-bg);
+  border: 1px solid var(--glass-border); border-radius: 12px;
+  margin-bottom: 32px; padding: 4px; width: 100%;
+}
+.toggle-btn {
+  flex: 1; padding: 12px 10px; text-align: center; font-size: 13px; font-weight: 700;
+  color: var(--text-dim); background: transparent; border: none; border-radius: 8px;
+  cursor: pointer; position: relative; z-index: 2; transition: color 0.3s;
+}
+.toggle-btn.active { color: var(--text-main); }
+.toggle-bg {
+  position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px);
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 8px; z-index: 1; transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-function startGame() {
-  if (state.deckMode === 'random') {
-    const randomIndex = Math.floor(Math.random() * PRESET_DECKS.length);
-    state.activeDeck = PRESET_DECKS[randomIndex].cards.map(name => MASTER_DECK.find(c => c.name === name));
-  }
-  state.deck = [...state.activeDeck].sort(() => Math.random() - 0.5);
-  state.hand = state.deck.slice(0, 4);
-  state.queue = state.deck.slice(4);
-  state.elixir = 10;
-  state.elixirProgress = 0;
-  state.score = 0;
-  state.streak = 0;
-  state.lastPlayedCard = null;
-  state.pendingCycleSlot = undefined; // Resets missing slot
-  
-  state.isGameOver = false;
-  state.isFirstRound = true;
-  state.playsThisRound = 0;
-  
-  if (state.mode === 'hand') {
-    state.targetPlays = Math.floor(Math.random() * 5) + 4; 
-  } else {
-    state.targetPlays = Math.floor(Math.random() * 3) + 4; 
-  }
-  
-  state.botTargetHold = Math.floor(Math.random() * 5) + 4;
-  
-  state.matchTime = 0;
-  state.matchDuration = 180000;
-  state.currentMultiplier = 1;
-  state.elixirRate = 2800;
-  state.phase = 'playing';
-
-  $('modeTitle').innerText = state.mode === 'elixir' ? "Elixir Mode" : (state.mode === 'hand' ? "Hand Mode" : "Combined");
-
-  mainTabsContainer.classList.remove('active');
-  gameOverScreen.classList.remove('active');
-  gameScreen.classList.add('active');
-  
-  const elixirWrapper = $('elixirWrapper');
-  if (state.mode === 'hand' || state.difficulty === 'endless') {
-    elixirWrapper.innerHTML = state.mode === 'hand' ? '' : `<div class="elixir-hidden-placeholder">Elixir is Hidden! Opponent starts at 10. Track mentally.</div>`;
-    state.matchDuration = Infinity;
-    $('phaseDisplay').innerText = "∞";
-    $('phaseDisplay').style.color = "var(--text-main)";
-  } else {
-    elixirWrapper.innerHTML = (state.mode === 'elixir' || state.mode === 'combined') ? `<div class="elixir-hidden-placeholder">Elixir is Hidden! Opponent starts at 10. Track mentally.</div>` : getElixirBarHTML();
-    state.matchDuration = state.difficulty === 'hard' ? 240000 : 180000;
-  }
-  
-  $('actionTitle').innerText = 'Watch the opponent play...';
-  $('choicesGrid').innerHTML = '';
-  $('choicesGrid').style.display = 'none';
-  $('choicesGridSeq').innerHTML = '';
-  $('choicesGridSeq').style.display = 'none';
-  $('seqResults').innerHTML = '';
-  $('seqResults').style.display = 'none';
-  $('btnNext').style.display = 'none';
-  $('btnNext').innerText = 'Continue';
-  
-  $('lastPlayedWrapper').classList.remove('active');
-  $('lastPlayedCardContainer').innerHTML = '';
-  
-  initHandSlots();
-  updateStatsUI();
-  
-  state.lastFrameTime = performance.now();
-  state.nextPlayTime = performance.now() + 1500;
-  if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
-  state.animationFrameId = requestAnimationFrame(gameLoop);
+/* FIX: Added Light Mode box-shadow to slider so it isn't camouflaged */
+.light-mode .toggle-bg { 
+  background: #ffffff; 
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-$('btnExit').addEventListener('click', () => {
-  gameScreen.classList.remove('active');
-  mainTabsContainer.classList.add('active');
-  if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
-});
+.match-type-toggle.ranked .toggle-bg { transform: translateX(100%); }
 
-$('btnPlayAgain').addEventListener('click', () => {
-  gameOverScreen.classList.remove('active');
-  startGame(); 
-});
+.speed-toggle {
+  display: flex; position: relative; background: var(--glass-bg);
+  border: 1px solid var(--glass-border); border-radius: 12px;
+  padding: 4px; width: 100%; max-width: 400px; margin-top: 40px;
+}
+.speed-toggle .toggle-bg {
+  position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(33.333% - 2.66px); 
+  background: rgba(255,255,255,0.1); border-radius: 8px; z-index: 1; transition: transform 0.3s;
+}
+.speed-toggle.x1 .toggle-bg { transform: translateX(0); }
+.speed-toggle.x2 .toggle-bg { transform: translateX(100%); }
+.speed-toggle.x3 .toggle-bg { transform: translateX(200%); }
 
-$('btnGoMenu').addEventListener('click', () => {
-  gameOverScreen.classList.remove('active');
-  mainTabsContainer.classList.add('active');
-});
-
-$('btnNext').addEventListener('click', continueGame);
-
-function initHandSlots() {
-  const handRow = $('handRow');
-  handRow.innerHTML = '';
-  for (let i = 0; i < 4; i++) {
-    const slotEl = document.createElement('div');
-    slotEl.className = 'card-slot';
-    slotEl.id = `slot-${i}`;
-    handRow.appendChild(slotEl);
-    if (i < state.hand.length) addCardToSlot(i, state.hand[i], false);
-  }
+.flow-visualizer-box {
+  width: 100%; max-width: 360px; background: var(--glass-bg);
+  border: 1px solid var(--glass-border); border-radius: 32px;
+  padding: 50px 30px; display: flex; flex-direction: column; align-items: center;
+}
+.flow-drop-container {
+  position: relative; width: 100px; height: 120px; margin-bottom: 40px;
+  display: flex; align-items: center; justify-content: center;
+}
+.flow-drop-container svg { width: 100%; height: 100%; }
+.flow-count {
+  position: absolute; font-size: 46px; font-weight: 900; color: #fff;
+  top: 55%; left: 50%; transform: translate(-50%, -50%);
+}
+.flow-count.pulse { animation: countPulse 0.15s ease-out; }
+@keyframes countPulse {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.3); }
+  100% { transform: translate(-50%, -50%) scale(1); }
 }
 
-function addCardToSlot(slotIndex, card, animateEntering = true) {
-  const slot = $(`slot-${slotIndex}`);
-  if (!slot) return;
-  slot.innerHTML = '';
-  const cardEl = document.createElement('div');
-  cardEl.className = 'card';
-  if (animateEntering) cardEl.classList.add('entering');
-  cardEl.innerHTML = `<img src="${card.img}" class="card-img">`;
-  slot.appendChild(cardEl);
-  if (animateEntering) {
-    void cardEl.offsetWidth;
-    setTimeout(() => { cardEl.classList.remove('entering'); }, 50);
-  }
+.flow-bar-container {
+  width: 100%; height: 20px; background: var(--elixir-empty);
+  border-radius: 10px; position: relative; border: 1px solid var(--border); overflow: hidden;
+}
+.flow-bar-fill {
+  height: 100%; background: linear-gradient(90deg, var(--elixir-2), var(--elixir-1));
+  width: 0%; transition: width 0.05s linear;
+}
+.flow-drops { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; }
+.flow-drops .drop { flex: 1; border-right: 2px solid rgba(0,0,0,0.6); }
+.flow-drops .drop:last-child { border: none; }
+
+/* === SEAMLESS FIXED DECK SLOTS === */
+.custom-deck-slots {
+  position: fixed; 
+  top: 0; 
+  left: 0;
+  width: 100%; 
+  z-index: 90; 
+  display: grid; 
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px; 
+  padding: 81px 16px 16px 16px; 
+  margin-bottom: 0px; 
+  border-radius: 0 0 24px 24px;
+  background: var(--glass-bg); 
+  backdrop-filter: blur(24px) saturate(150%); 
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid var(--glass-border); 
+  border-top: none;
+  box-shadow: var(--glass-shadow); 
 }
 
-function gameLoop(now) {
-  if (state.phase !== 'playing') return;
-  let delta = now - state.lastFrameTime;
-  state.lastFrameTime = now;
-  
-  if (state.mode !== 'hand') {
-    state.matchTime += delta;
-    if (state.difficulty !== 'endless') {
-      let prevMultiplier = state.currentMultiplier;
-      if (state.matchTime >= 180000 && state.difficulty === 'hard') {
-        state.currentMultiplier = 3;
-        state.elixirRate = 933;
-      } else if (state.matchTime >= 120000) {
-        state.currentMultiplier = 2;
-        state.elixirRate = 1400;
-      } else {
-        state.currentMultiplier = 1;
-        state.elixirRate = 2800;
-      }
-      if (prevMultiplier !== state.currentMultiplier) showTransition(state.currentMultiplier);
-    }
-    
-    if (state.elixir < 10) {
-      state.elixirProgress += delta;
-      while (state.elixirProgress >= state.elixirRate && state.elixir < 10) {
-        state.elixirProgress -= state.elixirRate;
-        state.elixir++;
-      }
-      if (state.elixir === 10) state.elixirProgress = 0;
-    } else {
-      state.elixirProgress = 0;
-    }
-    if ($('elixirCount')) updateElixirUI();
-  }
-  
-  if (state.cyclePending && now >= state.nextCycleTime) {
-    if (state.queue.length > 0 && state.hand.length < 4) {
-      let newCard = state.queue.shift();
-      state.hand.splice(state.cycleSlotIndex, 0, newCard);
-      addCardToSlot(state.cycleSlotIndex, newCard, true);
-    }
-    state.cyclePending = false;
-  }
-  
-  if (!state.cyclePending && now >= state.nextPlayTime) playOpponentCard(now);
-  
-  updateStatsUI();
-  if (state.matchTime >= state.matchDuration) {
-    endGame();
-    return;
-  }
-  state.animationFrameId = requestAnimationFrame(gameLoop);
+.custom-slot {
+  width: 100%; 
+  aspect-ratio: 3/4; background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
+}
+.custom-slot img { width: 100%; height: 100%; object-fit: cover; }
+.empty-custom-slot { color: var(--text-main); font-size: 28px; font-weight: 200; opacity: 0.3; }
+
+/* === FIXED CARD POOL PADDING & AUTO-HIDE === */
+.card-pool-grid {
+  display: grid; 
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px; padding: 16px; 
+  padding-top: 340px; 
+  padding-bottom: 120px; width: 100%;
 }
 
-function playOpponentCard(now) {
-  if (state.hand.length === 0) {
-    state.nextPlayTime = now + 1000;
-    return;
-  }
-  
-  let canPlay = false;
-  let affordable = [];
-  let picked = null;
-  
-  if (state.mode === 'hand') {
-    affordable = state.hand.map((c, i) => ({c, i}));
-    canPlay = true; 
-    picked = affordable[Math.floor(Math.random() * affordable.length)];
-  } else {
-    affordable = state.hand.map((c, i) => ({c, i})).filter(x => x.c.cost <= state.elixir);
-    
-    if (affordable.length > 0) {
-      let cycleCards = affordable.filter(x => x.c.cost <= 2);
-      
-      if (state.elixir >= 9.5) {
-        canPlay = true;
-        picked = affordable[Math.floor(Math.random() * affordable.length)];
-      } 
-      else if (state.elixir >= state.botTargetHold) {
-        canPlay = true;
-        picked = affordable[Math.floor(Math.random() * affordable.length)];
-      } 
-      else if (cycleCards.length > 0 && Math.random() < 0.35 && state.elixir >= cycleCards[0].c.cost + 1) {
-        canPlay = true;
-        picked = cycleCards[Math.floor(Math.random() * cycleCards.length)];
-      }
-    } else {
-      state.botTargetHold = Math.floor(Math.random() * 5) + 5; 
-    }
-  }
-  
-  if (canPlay && picked) {
-    let playIdx = picked.i;
-    let playedCard = picked.c;
-    
-    if (state.mode !== 'hand') state.elixir -= playedCard.cost;
-    
-    state.lastPlayedCard = playedCard;
-    const lpContainer = $('lastPlayedCardContainer');
-    lpContainer.innerHTML = '';
-    setTimeout(() => {
-        lpContainer.innerHTML = `<img src="${playedCard.img}" class="last-played-card">`;
-        $('lastPlayedWrapper').classList.add('active');
-    }, 10);
-    
-    const slot = $(`slot-${playIdx}`);
-    if (slot && slot.firstChild) slot.firstChild.classList.add('played');
-    
-    state.hand.splice(playIdx, 1);
-    state.queue.push(playedCard);
-    
-    state.playsThisRound++;
-    
-    if (state.playsThisRound >= state.targetPlays) {
-      
-      // NEW: Delay the physical cycle if in Hand Tracking mode
-      if (state.mode === 'hand') {
-        state.cyclePending = false;
-        state.pendingCycleSlot = playIdx; // Mark the slot to stay empty visually
-      } else {
-        state.cyclePending = true;
-        state.nextCycleTime = now + 350;
-        state.cycleSlotIndex = playIdx;
-      }
-      
-      state.nextPlayTime = Infinity; 
-      setTimeout(() => {
-        if (state.phase === 'playing') {
-          state.phase = 'question';
-          triggerQuestion();
-        }
-      }, 800 + Math.random() * 600);
-      return;
-    }
-    
-    state.cyclePending = true;
-    state.nextCycleTime = now + 350;
-    state.cycleSlotIndex = playIdx;
-    
-    if (state.mode === 'hand') {
-      state.nextPlayTime = now + 1800 + Math.random() * 1500;
-    } else {
-      if (picked.c.cost <= 2 && state.elixir < 5) {
-        state.nextPlayTime = now + 1800 + Math.random() * 1000;
-      } 
-      else if (Math.random() < 0.40 && state.elixir >= 3) {
-        state.botTargetHold = 0; 
-        state.nextPlayTime = now + 1200 + Math.random() * 600; 
-      } 
-      else {
-        state.botTargetHold = Math.floor(Math.random() * 6) + 4; 
-        state.nextPlayTime = now + 2000 + Math.random() * 1500;
-      }
-    }
-  } else {
-    state.nextPlayTime = now + 300;
-  }
+.card-pool-item { position: relative; border-radius: 6px; overflow: hidden; border: 2px solid transparent; width: 100%; }
+.card-pool-item img { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 4px; }
+.card-pool-item.disabled { opacity: 0.25; pointer-events: none; }
+.card-pool-item.selected { display: none !important; }
+
+.stats-bar {
+  display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 500px;
+  margin-bottom: 24px; background: var(--bg-card); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border);
+}
+.stat-item { text-align: center; }
+.stat-item span { color: var(--text-dim); font-size: 10px; font-weight: 500; text-transform: uppercase; }
+.streak { color: var(--gold); }
+
+.menu-top-bar { position: absolute; top: 24px; right: 20px; z-index: 10; }
+.menu-logo { font-size: 32px; font-weight: 800; text-align: center; margin-bottom: 8px; line-height: 1.1; }
+.menu-subtitle { color: var(--text-dim); text-align: center; margin-bottom: 32px; font-size: 15px; }
+
+.high-score-banner {
+  background: var(--bg-card); border: 1px solid var(--border); padding: 12px;
+  border-radius: 12px; text-align: center; margin-bottom: 32px; font-weight: 600; font-size: 14px;
+}
+.high-score-banner span { color: var(--gold); }
+
+.mode-btn {
+  display: block; width: 100%; padding: 20px; margin-bottom: 12px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+  color: var(--text-main); text-align: left; cursor: pointer;
+}
+.mode-btn h2 { font-size: 17px; margin-bottom: 4px; font-weight: 700; }
+.mode-btn p { color: var(--text-dim); font-size: 13px; font-weight: 400; }
+
+.search-bar {
+  width: 100%; padding: 12px 16px; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text-main); font-size: 15px; margin-bottom: 16px; outline: none;
+}
+.preset-deck-list { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 500px; padding-bottom: 40px; }
+.preset-deck-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+.preset-info h3 { font-size: 15px; margin-bottom: 8px; }
+.preset-cards { display: flex; gap: 4px; overflow-x: auto; }
+.preset-cards img { width: 48px; height: 60px; object-fit: cover; border-radius: 4px; }
+
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-bg);
+  backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal-content {
+  background: var(--bg-card); padding: 32px 24px; border-radius: 16px; border: 1px solid var(--border); width: 100%; max-width: 380px; text-align: center;
+}
+.modal-content h3 { margin-bottom: 20px; font-size: 18px; }
+.diff-btn {
+  display: block; width: 100%; padding: 16px; margin-bottom: 10px; background: var(--bg-card-light);
+  border: 1px solid var(--border); border-radius: 10px; color: var(--text-main); font-size: 15px;
+}
+.diff-btn h4 { font-size: 16px; margin-bottom: 4px; }
+.diff-btn p { font-size: 12px; color: var(--text-dim); }
+
+.preview-cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+.preview-cards-grid img { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 8px; }
+
+.transition-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: transparent;
+  display: flex; align-items: center; justify-content: center; z-index: 250; pointer-events: none; opacity: 0;
+}
+.transition-text { font-size: 42px; font-weight: 900; color: var(--text-main); animation: pulseScale 1.5s ease; }
+
+.hand-slots-wrapper {
+  background: var(--bg-card); padding: 16px 12px; border-radius: 12px; border: 1px solid var(--border);
+  margin-bottom: 12px; width: 100%; max-width: 400px; transition: all 0.3s ease;
+}
+.hand-label { color: var(--text-dim); font-size: 10px; text-transform: uppercase; text-align: center; margin-bottom: 12px; font-weight: 600; }
+.cards-row { display: flex; gap: 10px; justify-content: center; width: 100%; }
+.card-slot {
+  flex: 1 1 0; max-width: 76px; height: 96px; background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.8); border-radius: 8px; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.card-slot::before {
+  content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 42px; height: 42px; z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' fill-opacity='0.15' d='M2.5 15l1.5-7 4.5 3 3.5-6 3.5 6 4.5-3 1.5 7H2.5z'/%3E%3Cpath fill='%23ffffff' fill-opacity='0.15' d='M2.5 16.5h19v2.5H2.5z'/%3E%3C/svg%3E");
 }
 
-function showTransition(mult) {
-  $('transitionText').innerText = mult === 2 ? "DOUBLE ELIXIR" : "TRIPLE ELIXIR";
-  $('transitionOverlay').style.opacity = '1';
-  setTimeout(() => { $('transitionOverlay').style.opacity = '0'; }, 1500);
+.light-mode .card-slot { background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(0, 0, 0, 0.3); }
+.light-mode .card-slot::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000000' fill-opacity='0.25' d='M2.5 15l1.5-7 4.5 3 3.5-6 3.5 6 4.5-3 1.5 7H2.5z'/%3E%3Cpath fill='%23000000' fill-opacity='0.25' d='M2.5 16.5h19v2.5H2.5z'/%3E%3C/svg%3E"); }
+
+.card { position: absolute; width: 100%; height: 100%; border-radius: 7px; overflow: hidden; transition: transform 0.45s, opacity 0.3s; z-index: 1; }
+.card.played { transform: translateY(-70px) scale(0.7); opacity: 0; }
+.card.entering { transform: translateY(70px) scale(0.7); opacity: 0; }
+.card-img { width: 100%; height: 100%; object-fit: cover; }
+
+.last-played-wrapper {
+  background: var(--bg-card); padding: 10px 16px; border-radius: 12px; border: 1px solid var(--border);
+  margin-bottom: 24px; display: flex; align-items: center; justify-content: center; gap: 16px; width: 100%; max-width: 400px; opacity: 0;
+}
+.last-played-wrapper.active { opacity: 1; }
+.last-played-label { color: var(--text-dim); font-size: 11px; font-weight: 600; }
+
+#lastPlayedCardContainer {
+  width: 50px;
+  height: 62px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-function getElixirBarHTML() {
-  return `
-  <div class="elixir-wrapper" id="elixirContainer">
-    <div class="elixir-info-row">
-      <div class="elixir-drop-container">
-        <svg class="elixir-drop-svg" viewBox="0 0 24 32">
-          <path d="M12 0 C12 0 2 12 2 20 C2 26.6 6.5 32 12 32 C17.5 32 22 26.6 22 20 C22 12 12 0 12 0 Z" fill="url(#dropGrad)"/>
-          <defs>
-            <linearGradient id="dropGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#d946ef"/>
-              <stop offset="100%" stop-color="#7e22ce"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        <span id="elixirCount" class="elixir-count-text">10</span>
-      </div>
-      <span class="elixir-max-text">Max: 10</span>
-    </div>
-    <div class="elixir-bar-bg">
-      <div class="elixir-bar-fill" id="elixirFill" style="width: 100%;"></div>
-      <div class="elixir-drops">
-        <div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div>
-        <div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div>
-      </div>
-    </div>
-  </div>`;
+.last-played-card { 
+  width: 50px; 
+  height: 62px; 
+  border-radius: 4px; 
+  border: 1px solid var(--card-border); 
+  object-fit: cover; 
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
 }
 
-function updateElixirUI() {
-  const elixirCountEl = $('elixirCount');
-  if (!elixirCountEl) return;
-  elixirCountEl.innerText = state.elixir;
-  let progressPercent = (state.elixirProgress / state.elixirRate) * 10;
-  let totalWidth = (state.elixir * 10) + (state.elixir < 10 ? progressPercent : 0);
-  $('elixirFill').style.width = totalWidth + '%';
+@keyframes popIn {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
-function updateStatsUI() {
-  $('scoreDisplay').innerText = state.score;
-  $('streakDisplay').innerText = '🔥 ' + state.streak;
-  const phaseDisplay = $('phaseDisplay');
-  if (state.mode === 'hand' || state.difficulty === 'endless') {
-    phaseDisplay.innerText = "∞";
-    phaseDisplay.style.color = "var(--text-main)";
-    return;
-  }
-  let timeLeft, isOvertime = false;
-  if (state.difficulty === 'hard') {
-    if (state.matchTime < 180000) timeLeft = 180000 - state.matchTime;
-    else {
-      timeLeft = 240000 - state.matchTime;
-      isOvertime = true;
-    }
-  } else {
-    timeLeft = 180000 - state.matchTime;
-  }
-  if (timeLeft < 0) timeLeft = 0;
-  let mins = Math.floor(timeLeft / 60000);
-  let secs = Math.floor((timeLeft % 60000) / 1000);
-  phaseDisplay.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  phaseDisplay.style.color = isOvertime ? "var(--error)" : "var(--text-main)";
-}
+.gameplay-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.focus-text { color: var(--text-dim); font-size: 12px; text-transform: uppercase; font-weight: 500; }
 
-function revealElixirBar() {
-  $('elixirWrapper').innerHTML = getElixirBarHTML();
-  updateElixirUI();
-}
+.bottom-ui { margin-top: auto; width: 100%; max-width: 500px; }
+.elixir-wrapper { margin-bottom: 16px; }
+.elixir-hidden-placeholder { background: var(--bg-card); border: 1px dashed var(--border); border-radius: 8px; padding: 12px; text-align: center; color: var(--text-dim); font-size: 13px; }
+.elixir-info-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.elixir-drop-container { position: relative; width: 24px; height: 28px; display: flex; align-items: center; justify-content: center; }
+.elixir-drop-svg { width: 100%; height: 100%; }
+.elixir-count-text { position: absolute; font-size: 12px; font-weight: 800; color: #fff; top: 55%; left: 50%; transform: translate(-50%, -50%); }
+.elixir-max-text { font-size: 13px; color: var(--text-dim); font-weight: 600; }
+.elixir-bar-bg { width: 100%; height: 12px; background: var(--elixir-empty); border-radius: 6px; overflow: hidden; position: relative; border: 1px solid var(--border); }
+.elixir-bar-fill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--elixir-2), var(--elixir-1)); position: relative; }
+.elixir-drops { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; pointer-events: none; }
+.drop { flex: 1; border-right: 1px solid rgba(0,0,0,0.3); }
 
-function triggerQuestion() {
-  $('choicesGrid').innerHTML = '';
-  $('choicesGrid').style.display = 'none';
-  $('choicesGridSeq').innerHTML = '';
-  $('choicesGridSeq').style.display = 'none';
-  $('seqResults').innerHTML = '';
-  $('seqResults').style.display = 'none';
-  $('btnNext').style.display = 'none';
-  
-  let questionType = state.mode;
-  if (state.mode === 'combined') {
-    let rand = Math.random();
-    if (rand < 0.33) questionType = 'elixir';
-    else if (rand < 0.66) questionType = 'just_played';
-    else questionType = 'next_cycle';
-  }
-  if (state.mode === 'hand') questionType = 'sequence';
-  if (questionType === 'just_played' && !state.lastPlayedCard) questionType = 'next_cycle';
-  if (questionType === 'next_cycle' && state.queue.length === 0) questionType = 'just_played';
-  if (questionType === 'just_played' && !state.lastPlayedCard) questionType = 'elixir';
-  
-  if (questionType === 'elixir') {
-    $('actionTitle').innerText = "How much elixir does the opponent have RIGHT NOW?";
-    $('choicesGrid').style.display = 'grid';
-    
-    let exactElixir = state.elixir + (state.elixirProgress / state.elixirRate);
-    let floorVal = Math.floor(exactElixir), ceilVal = Math.ceil(exactElixir), fraction = exactElixir - floorVal;
-    
-    let correctAnswers = new Set();
-    if (Math.abs(fraction - 0.5) < 0.05) {
-      correctAnswers.add(floorVal);
-      correctAnswers.add(ceilVal);
-    } else if (fraction < 0.5) {
-      correctAnswers.add(floorVal);
-    } else {
-      correctAnswers.add(ceilVal);
-    }
-    
-    let options = new Set(correctAnswers);
-    while (options.size < 4) options.add(Math.floor(Math.random() * 11));
-    
-    Array.from(options).sort(() => Math.random() - 0.5).forEach(opt => {
-      let btn = document.createElement('button');
-      btn.className = 'choice-btn';
-      btn.innerText = opt;
-      btn.setAttribute('data-value', opt);
-      btn.onclick = function() { handleAnswer(opt, correctAnswers, btn); };
-      $('choicesGrid').appendChild(btn);
-    });
-    
-  } else if (questionType === 'just_played') {
-    $('actionTitle').innerText = "Which card did the opponent JUST PLAY?";
-    $('choicesGrid').style.display = 'grid';
-    let correctCard = state.lastPlayedCard;
-    let correctAnswers = new Set([correctCard.name]);
-    let options = new Set([correctCard]);
-    while (options.size < 4) {
-      let fakeCard = state.deck[Math.floor(Math.random() * state.deck.length)];
-      options.add(fakeCard);
-    }
-    Array.from(options).sort(() => Math.random() - 0.5).forEach(opt => {
-      let btn = document.createElement('button');
-      btn.className = 'choice-btn-img';
-      btn.innerHTML = `<img src="${opt.img}" alt="${opt.name}">`;
-      btn.setAttribute('data-value', opt.name);
-      btn.onclick = function() { handleAnswer(opt.name, correctAnswers, btn); };
-      $('choicesGrid').appendChild(btn);
-    });
-    
-  } else if (questionType === 'next_cycle') {
-    $('actionTitle').innerText = "Which card is NEXT in the opponent's cycle?";
-    $('choicesGrid').style.display = 'grid';
-    let correctCard = state.queue[0];
-    let correctAnswers = new Set([correctCard.name]);
-    let options = new Set([correctCard]);
-    while (options.size < 4) {
-      let fakeCard = state.deck[Math.floor(Math.random() * state.deck.length)];
-      options.add(fakeCard);
-    }
-    Array.from(options).sort(() => Math.random() - 0.5).forEach(opt => {
-      let btn = document.createElement('button');
-      btn.className = 'choice-btn-img';
-      btn.innerHTML = `<img src="${opt.img}" alt="${opt.name}">`;
-      btn.setAttribute('data-value', opt.name);
-      btn.onclick = function() { handleAnswer(opt.name, correctAnswers, btn); };
-      $('choicesGrid').appendChild(btn);
-    });
-    
-  } else if (questionType === 'sequence') {
-    let count = 1;
-    if (state.difficulty === 'normal') count = 2;
-    else if (state.difficulty === 'hard') count = 3;
-    else if (state.difficulty === 'elite') count = 4;
-    
-    // NEW: Exclude the last played card from being a selectable option in Hand Mode
-    let availableCards = state.queue;
-    if (state.mode === 'hand' && state.lastPlayedCard) {
-        availableCards = state.queue.filter(c => c.name !== state.lastPlayedCard.name);
-    }
-    
-    if (availableCards.length < count) count = availableCards.length;
-    state.sequenceTarget = count;
-    state.sequenceSelection = [];
-    
-    $('actionTitle').innerText = `Select the next ${count} card${count > 1 ? 's' : ''} in order:`;
-    $('choicesGridSeq').style.display = 'grid';
-    
-    let shuffledQueue = [...availableCards].sort(() => Math.random() - 0.5);
-    shuffledQueue.forEach(opt => {
-      let btn = document.createElement('button');
-      btn.className = 'choice-btn-seq';
-      btn.innerHTML = `<img src="${opt.img}" alt="${opt.name}">`;
-      btn.setAttribute('data-value', opt.name);
-      btn.onclick = function() { toggleSequenceSelection(opt.name, btn); };
-      $('choicesGridSeq').appendChild(btn);
-    });
-  }
-}
+.action-box { background: var(--bg-card); border-radius: 12px; padding: 24px; text-align: center; border: 1px solid var(--border); margin-bottom: 10px; }
+.action-title { font-size: 17px; font-weight: 600; margin-bottom: 20px; }
+.choices { display: none; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.choices-seq { display: none; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.choice-btn { padding: 16px 10px; background: var(--bg-card-light); border: 1px solid var(--border); border-radius: 8px; color: var(--text-main); font-size: 18px; font-weight: 700; cursor: pointer; }
+.choice-btn.correct { background: rgba(34,197,94,0.15); border-color: var(--success); color: var(--success); }
+.choice-btn.wrong { background: rgba(239,68,68,0.15); border-color: var(--error); color: var(--error); }
+.choice-btn-img { background: var(--bg-card-light); border: 1px solid var(--border); border-radius: 8px; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.choice-btn-img img { width: 58px; height: 74px; object-fit: cover; border-radius: 4px; }
+.choice-btn-img.correct { border-color: var(--success); background: rgba(34,197,94,0.15); }
+.choice-btn-img.wrong { border-color: var(--error); background: rgba(239,68,68,0.15); }
 
-function toggleSequenceSelection(cardName, btn) {
-  if ($('btnNext').style.display === 'block') return;
-  let idx = state.sequenceSelection.indexOf(cardName);
-  if (idx > -1) {
-    state.sequenceSelection.splice(idx, 1);
-    btn.classList.remove('selected');
-    let badge = btn.querySelector('.seq-badge');
-    if (badge) badge.remove();
-  } else {
-    if (state.sequenceSelection.length < state.sequenceTarget) {
-      state.sequenceSelection.push(cardName);
-      btn.classList.add('selected');
-      let badge = document.createElement('div');
-      badge.className = 'seq-badge';
-      badge.innerText = state.sequenceSelection.length;
-      btn.appendChild(badge);
-    }
-  }
-  document.querySelectorAll('.choice-btn-seq').forEach(b => {
-    let name = b.getAttribute('data-value');
-    let pos = state.sequenceSelection.indexOf(name);
-    let badge = b.querySelector('.seq-badge');
-    if (pos > -1) {
-      if (!badge) {
-        badge = document.createElement('div');
-        badge.className = 'seq-badge';
-        b.appendChild(badge);
-      }
-      badge.innerText = pos + 1;
-    } else {
-      if (badge) badge.remove();
-    }
-  });
-  if (state.sequenceSelection.length === state.sequenceTarget) submitSequenceAnswer();
-}
+.choice-btn-seq { background: var(--bg-card-light); border: 1px solid var(--border); border-radius: 6px; padding: 4px; cursor: pointer; position: relative; display: flex; flex-direction: column; align-items: center; }
+.choice-btn-seq img { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 3px; }
+.choice-btn-seq.selected { border-color: var(--text-main); background: var(--border); }
+.seq-badge { position: absolute; top: -6px; right: -6px; background: var(--text-main); color: var(--bg-main); width: 20px; height: 20px; border-radius: 50%; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.seq-results { display: none; margin-top: 10px; text-align: center; }
+.seq-result-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 12px; padding: 12px 10px; border-radius: 8px; }
+.seq-result-row.correct { background: var(--seq-correct-bg); border: 1px solid var(--seq-correct-border); }
+.seq-result-row.wrong { background: var(--seq-wrong-bg); border: 1px solid var(--seq-wrong-border); }
+.seq-result-cards { display: flex; gap: 8px; align-items: center; justify-content: center; }
+.seq-result-card img { width: 40px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid var(--card-border); }
+.seq-arrow { color: var(--text-dim); font-size: 12px; }
 
-function submitSequenceAnswer() {
-  let correctSequence = state.queue.slice(0, state.sequenceTarget);
-  let userSequence = state.sequenceSelection.map(name => state.deck.find(c => c.name === name));
-  let isCorrect = true;
-  for (let i = 0; i < state.sequenceTarget; i++) {
-    if (userSequence[i].name !== correctSequence[i].name) {
-      isCorrect = false;
-      break;
-    }
-  }
-  $('choicesGridSeq').style.display = 'none';
-  let html = `<div class="seq-result-row correct"><div class="seq-result-cards">`;
-  correctSequence.forEach((card, index) => {
-    html += `<div class="seq-result-card"><img src="${card.img}"></div>`;
-    if (index < correctSequence.length - 1) html += `<span class="seq-arrow">→</span>`;
-  });
-  html += `</div></div>`;
-  
-  if (!isCorrect) {
-    html += `<div class="seq-result-row wrong"><div class="seq-result-cards">`;
-    userSequence.forEach((card, index) => {
-      html += `<div class="seq-result-card"><img src="${card.img}"></div>`;
-      if (index < userSequence.length - 1) html += `<span class="seq-arrow">→</span>`;
-    });
-    html += `</div></div>`;
-  }
-  
-  $('seqResults').innerHTML = html;
-  $('seqResults').style.display = 'block';
-  
-  if (isCorrect) {
-    state.score += 10 + (state.streak * 2);
-    state.streak++;
-    $('actionTitle').innerText = 'Perfect! You got the order right.';
-    $('btnNext').innerText = 'Continue';
-    $('btnNext').style.display = 'block';
-  } else {
-    state.streak = 0;
-    if (state.matchType === 'ranked') {
-      state.isGameOver = true;
-      $('actionTitle').innerHTML = '<span style="color:var(--error);">Wrong order! Sudden Death.</span>';
-      setTimeout(endGame, 1200);
-    } else {
-      $('actionTitle').innerText = 'Wrong order! Check the comparison below.';
-      $('btnNext').innerText = 'Continue';
-      $('btnNext').style.display = 'block';
-    }
-  }
-  
-  if (state.mode === 'combined') revealElixirBar();
-  updateStatsUI();
-}
+.next-btn { margin-top: 20px; width: 100%; padding: 16px; background: var(--text-main); border: none; border-radius: 10px; color: var(--bg-main); font-size: 16px; font-weight: 700; cursor: pointer; display: none; text-transform: uppercase; }
+#btnStartCustom { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 560px; z-index: 100; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); background: var(--success); }
+.go-title { font-size: 28px; font-weight: 800; margin-bottom: 20px; color: var(--text-main); }
+.go-score { font-size: 72px; font-weight: 900; color: var(--gold); margin-bottom: 40px; }
 
-function handleAnswer(selected, correctAnswers, btn) {
-  const buttons = document.querySelectorAll('.choice-btn, .choice-btn-img');
-  buttons.forEach(b => b.style.pointerEvents = 'none');
-  
-  let isCorrect = correctAnswers.has(selected);
-  
-  if (isCorrect) {
-    btn.classList.add('correct');
-    state.score += 10 + (state.streak * 2);
-    state.streak++;
-    $('actionTitle').innerText = 'Correct!';
-    $('btnNext').innerText = 'Continue';
-    $('btnNext').style.display = 'block';
-  } else {
-    btn.classList.add('wrong');
-    state.streak = 0;
-    buttons.forEach(b => {
-      let val = isNaN(Number(b.getAttribute('data-value'))) ? b.getAttribute('data-value') : Number(b.getAttribute('data-value'));
-      if (correctAnswers.has(val)) b.classList.add('correct');
-    });
-    
-    if (state.matchType === 'ranked') {
-      state.isGameOver = true;
-      $('actionTitle').innerHTML = '<span style="color:var(--error);">Wrong! Sudden Death.</span>';
-      setTimeout(endGame, 1200); 
-    } else {
-      $('actionTitle').innerText = 'Wrong! Correct answer highlighted.';
-      $('btnNext').innerText = 'Continue';
-      $('btnNext').style.display = 'block';
-    }
-  }
-  
-  if (state.mode === 'elixir' || state.mode === 'combined') revealElixirBar();
-  updateStatsUI();
-}
-
-function continueGame() {
-  if (state.isGameOver) {
-    endGame();
-    return;
-  }
-
-  // NEW: Fill the empty slot now that the question has been answered!
-  if (state.mode === 'hand' && state.pendingCycleSlot !== undefined) {
-    let newCard = state.queue.shift();
-    state.hand.splice(state.pendingCycleSlot, 0, newCard);
-    addCardToSlot(state.pendingCycleSlot, newCard, true);
-    state.pendingCycleSlot = undefined;
-  }
-
-  if (state.mode === 'elixir' || state.mode === 'combined') {
-    $('elixirWrapper').innerHTML = `<div class="elixir-hidden-placeholder">Elixir is Hidden! Opponent starts at 10. Track mentally.</div>`;
-  }
-  
-  $('choicesGrid').style.display = 'none';
-  $('choicesGridSeq').style.display = 'none';
-  $('seqResults').style.display = 'none';
-  $('btnNext').style.display = 'none';
-  $('actionTitle').innerText = 'Watch the opponent play...';
-  
-  $('lastPlayedWrapper').classList.remove('active');
-  $('lastPlayedCardContainer').innerHTML = '';
-
-  state.isFirstRound = false;
-  state.playsThisRound = 0;
-  
-  if (state.mode === 'hand') {
-    state.targetPlays = Math.floor(Math.random() * 7) + 2; 
-  } else {
-    state.targetPlays = Math.floor(Math.random() * 3) + 4; 
-  }
-  
-  state.botTargetHold = Math.floor(Math.random() * 5) + 4;
-  
-  state.phase = 'playing';
-  state.lastFrameTime = performance.now();
-  state.nextPlayTime = performance.now() + 1000;
-  state.animationFrameId = requestAnimationFrame(gameLoop);
-}
-
-function endGame() {
-  state.phase = 'gameover';
-  cancelAnimationFrame(state.animationFrameId);
-  
-  $('goTitleText').innerText = "MATCH OVER";
-  $('goTitleText').style.color = "var(--text-main)";
-  if (state.score > state.highScore) {
-    state.highScore = state.score;
-    try { localStorage.setItem('crHighScore', state.score); } catch(e) {}
-  }
-  
-  $('goScore').innerText = state.score;
-  gameScreen.classList.remove('active');
-  gameOverScreen.classList.add('active');
-}
+/* Theme Switch CSS */
+.theme-switch { --toggle-size: 12px; --container-width: 5.625em; --container-height: 2.5em; --container-radius: 6.25em; --container-light-bg: #3D7EAE; --container-night-bg: #1D1F2C; --circle-container-diameter: 3.375em; --sun-moon-diameter: 2.125em; --sun-bg: #ECCA2F; --moon-bg: #C4C9D1; --spot-color: #959DB1; --circle-container-offset: calc((var(--circle-container-diameter) - var(--container-height)) / 2 * -1); --stars-color: #fff; --clouds-color: #F3FDFF; --back-clouds-color: #AACADF; --transition: .5s cubic-bezier(0, -0.02, 0.4, 1.25); --circle-transition: .3s cubic-bezier(0, -0.02, 0.35, 1.17); }
+.theme-switch, .theme-switch *, .theme-switch *::before, .theme-switch *::after { box-sizing: border-box; margin: 0; padding: 0; font-size: var(--toggle-size); }
+.theme-switch__container { width: var(--container-width); height: var(--container-height); background-color: var(--container-light-bg); border-radius: var(--container-radius); overflow: hidden; cursor: pointer; position: relative; }
+.theme-switch__container::before { content: ""; position: absolute; z-index: 1; inset: 0; box-shadow: 0em 0.05em 0.187em rgba(0,0,0,0.25) inset; border-radius: var(--container-radius); }
+.theme-switch__checkbox { display: none; }
+.theme-switch__circle-container { width: var(--circle-container-diameter); height: var(--circle-container-diameter); background-color: rgba(255,255,255,0.1); position: absolute; left: var(--circle-container-offset); top: var(--circle-container-offset); border-radius: var(--container-radius); display: flex; transition: var(--circle-transition); pointer-events: none; }
+.theme-switch__sun-moon-container { pointer-events: auto; position: relative; z-index: 2; width: var(--sun-moon-diameter); height: var(--sun-moon-diameter); margin: auto; border-radius: var(--container-radius); background-color: var(--sun-bg); overflow: hidden; transition: var(--transition); }
+.theme-switch__moon { transform: translateX(100%); width: 100%; height: 100%; background-color: var(--moon-bg); border-radius: inherit; transition: var(--transition); position: relative; }
+.theme-switch__spot { position: absolute; top: 0.75em; left: 0.312em; width: 0.75em; height: 0.75em; border-radius: var(--container-radius); background-color: var(--spot-color); }
+.theme-switch__spot:nth-of-type(2) { width: 0.375em; height: 0.375em; top: 0.937em; left: 1.375em; }
+.theme-switch__spot:nth-last-of-type(3) { width: 0.25em; height: 0.25em; top: 0.312em; left: 0.812em; }
+.theme-switch__clouds { width: 1.25em; height: 1.25em; background-color: var(--clouds-color); border-radius: var(--container-radius); position: absolute; bottom: -0.625em; left: 0.312em; box-shadow: 0.937em 0.312em var(--clouds-color), -0.312em -0.312em var(--back-clouds-color), 1.437em 0.375em var(--clouds-color), 0.5em -0.125em var(--back-clouds-color), 2.187em 0 var(--clouds-color), 1.25em -0.062em var(--back-clouds-color), 2.937em 0.312em var(--clouds-color), 2em -0.312em var(--back-clouds-color), 3.625em -0.062em var(--clouds-color), 2.625em 0em var(--back-clouds-color), 4.5em -0.312em var(--clouds-color), 3.375em -0.437em var(--back-clouds-color), 4.625em -1.75em 0 0.437em var(--clouds-color), 4em -0.625em var(--back-clouds-color), 4.125em -2.125em 0 0.437em var(--clouds-color); transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25); }
+.theme-switch__stars-container { position: absolute; color: var(--stars-color); top: -100%; left: 0.312em; width: 2.75em; height: auto; transition: var(--transition); }
+.theme-switch__checkbox:checked + .theme-switch__container { background-color: var(--container-night-bg); }
+.theme-switch__checkbox:checked + .theme-switch__container .theme-switch__circle-container { left: calc(100% - var(--circle-container-offset) - var(--circle-container-diameter)); }
+.theme-switch__checkbox:checked + .theme-switch__container .theme-switch__circle-container:hover { left: calc(100% - var(--circle-container-offset) - var(--circle-container-diameter) - 0.187em); }
+.theme-switch__circle-container:hover { left: calc(var(--circle-container-offset) + 0.187em); }
+.theme-switch__checkbox:checked + .theme-switch__container .theme-switch__moon { transform: translate(0); }
+.theme-switch__checkbox:checked + .theme-switch__container .theme-switch__clouds { bottom: -4.062em; }
+.theme-switch__checkbox:checked + .theme-switch__container .theme-switch__stars-container { top: 50%; transform: translateY(-50%); }
