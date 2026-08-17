@@ -24,7 +24,7 @@ const state = {
   cyclePending: false,
   nextCycleTime: 0,
   cycleSlotIndex: -1,
-  pendingCycleSlot: undefined, // NEW: Holds the empty slot index for Hand Tracking mode
+  pendingCycleSlot: undefined, 
   lastFrameTime: 0,
   animationFrameId: null,
   sequenceSelection: [],
@@ -396,7 +396,7 @@ function startGame() {
   state.score = 0;
   state.streak = 0;
   state.lastPlayedCard = null;
-  state.pendingCycleSlot = undefined; // Resets missing slot
+  state.pendingCycleSlot = undefined;
   
   state.isGameOver = false;
   state.isFirstRound = true;
@@ -614,11 +614,9 @@ function playOpponentCard(now) {
     state.playsThisRound++;
     
     if (state.playsThisRound >= state.targetPlays) {
-      
-      // NEW: Delay the physical cycle if in Hand Tracking mode
       if (state.mode === 'hand') {
         state.cyclePending = false;
-        state.pendingCycleSlot = playIdx; // Mark the slot to stay empty visually
+        state.pendingCycleSlot = playIdx; 
       } else {
         state.cyclePending = true;
         state.nextCycleTime = now + 350;
@@ -771,8 +769,20 @@ function triggerQuestion() {
       correctAnswers.add(ceilVal);
     }
     
+    // NEW: Tightly packed options around the correct answer!
     let options = new Set(correctAnswers);
-    while (options.size < 4) options.add(Math.floor(Math.random() * 11));
+    let baseAns = Array.from(correctAnswers)[0];
+    
+    // Create an array of nearby numbers (+1, -1, +2, -2, etc) and shuffle them
+    let offsets = [-1, 1, -2, 2, -3, 3].sort(() => Math.random() - 0.5);
+    
+    for (let offset of offsets) {
+      if (options.size >= 4) break;
+      let val = baseAns + offset;
+      if (val >= 0 && val <= 10) { // Keep options within valid 0-10 bounds
+        options.add(val);
+      }
+    }
     
     Array.from(options).sort(() => Math.random() - 0.5).forEach(opt => {
       let btn = document.createElement('button');
@@ -827,7 +837,6 @@ function triggerQuestion() {
     else if (state.difficulty === 'hard') count = 3;
     else if (state.difficulty === 'elite') count = 4;
     
-    // NEW: Exclude the last played card from being a selectable option in Hand Mode
     let availableCards = state.queue;
     if (state.mode === 'hand' && state.lastPlayedCard) {
         availableCards = state.queue.filter(c => c.name !== state.lastPlayedCard.name);
@@ -983,7 +992,6 @@ function continueGame() {
     return;
   }
 
-  // NEW: Fill the empty slot now that the question has been answered!
   if (state.mode === 'hand' && state.pendingCycleSlot !== undefined) {
     let newCard = state.queue.shift();
     state.hand.splice(state.pendingCycleSlot, 0, newCard);
